@@ -15,10 +15,16 @@
     ></np-content-cta>
 
     <button id="target">Open apps modal</button>
+    <button id="target2">Open login modal</button>
     <script>
-      const targetButton = document.getElementById('target')
-      targetButton.onclick = () => {
-        window.NostrContent.handleOpenAppsModal()
+      const targetButtonApps = document.getElementById('target')
+      targetButtonApps.onclick = () => {
+        window.NostrContent.openAppsModal()
+      }
+
+      const targetButtonLogin = document.getElementById('target2')
+      targetButtonLogin.onclick = () => {
+        window.NostrContent.openLoginModal()
       }
     </script>
   </body>

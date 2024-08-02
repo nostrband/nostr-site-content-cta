@@ -13,7 +13,7 @@ import { ItemAction } from './utils/types'
 import { Icons } from './assets/icons'
 import { prepareActionsList } from './utils/helpers'
 import './components'
-import { ModalApps } from './components'
+import { ModalApps, ModalLogin } from './components'
 
 @customElement('np-content-cta')
 export class NostrContentCta extends LitElement {
@@ -74,6 +74,7 @@ export class NostrContentCta extends LitElement {
     if (!this.actionsModalOpen || this.appsModalOpen) return nothing
     return html`
       <np-content-cta-modal @close-modal=${this._handleCloseModal} .title=${'Actions'}>
+        <div>Login &rarr;</div>
         <div class="flex flex-col gap-2">
           ${this.actions.map((action) => {
             return html` <button
@@ -114,7 +115,7 @@ export class NostrContentCta extends LitElement {
   }
 }
 
-const handleOpenAppsModal = (id: string, kind: number, userPubkey: string) => {
+const openAppsModal = (id: string, kind: number, userPubkey: string) => {
   console.log({ id, kind, userPubkey })
 
   const exists = document.getElementById('apps-modal-instance') as ModalApps | null
@@ -132,4 +133,17 @@ const handleOpenAppsModal = (id: string, kind: number, userPubkey: string) => {
   document.body.appendChild(root)
 }
 
-export { handleOpenAppsModal }
+const openLoginModal = () => {
+  const exists = document.getElementById('login-modal-instance') as ModalLogin | null
+  if (exists) {
+    exists.open = true
+    return
+  }
+  const root = document.createElement('np-content-cta-modal-login') as ModalLogin
+  root.id = 'login-modal-instance'
+  root.open = true
+  root.addEventListener('close-modal', () => (root.open = false))
+  document.body.appendChild(root)
+}
+
+export { openAppsModal, openLoginModal }
