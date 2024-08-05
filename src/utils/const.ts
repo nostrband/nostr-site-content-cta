@@ -22,8 +22,8 @@ const ACTIONS: Record<string, ItemAction> = {
     label: 'Follow',
     icon: Icons.Follow,
   },
-  openWith: {
-    value: 'openWith',
+  "open-with": {
+    value: 'open-with',
     label: 'Open with',
     icon: Icons.LinkOut,
   },
