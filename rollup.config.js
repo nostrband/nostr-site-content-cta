@@ -6,7 +6,7 @@ export default {
   output: {
     file: 'dist/index.js',
     format: 'iife',
-    name: 'nostr_site_content_cta_iife',
+    name: 'NostrContent',
   },
   plugins: [nodeResolve(), typescript({ sourceMap: false })],
 }

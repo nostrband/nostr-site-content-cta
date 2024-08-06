@@ -4,14 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nostr Site Content CTA</title>
-    <script type="module" src="./dist/index.js"></script>
+    <script src="./dist/index.js"></script>
   </head>
   <body>
     <np-content-cta
-      data-cta-list="zap,like,repost,follow,openWith"
+      data-cta-list="zap,like,repost,follow,open-with"
       data-cta-main="like"
       data-button-color="#ff3ed9"
-      data-text-button-color="#fff"
     ></np-content-cta>
+
+    <button id="target">Open apps modal</button>
+    <button id="target2">Open login modal</button>
+    <script>
+      const targetButtonApps = document.getElementById('target')
+      targetButtonApps.onclick = () => {
+        window.NostrContent.openAppsModal()
+      }
+
+      const targetButtonLogin = document.getElementById('target2')
+      targetButtonLogin.onclick = () => {
+        window.NostrContent.openLoginModal()
+      }
+    </script>
   </body>
 </html>
