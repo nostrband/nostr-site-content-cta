@@ -32,7 +32,7 @@ export class Modal extends LitElement {
   render() {
     return html`
       <dialog
-        class="fixed bg-white p-6 rounded-lg shadow-lg w-[calc(100%-2rem)] m-0 max-w-lg left-1/2 -translate-x-1/2 -translate-y-1/2 top-1/2 backdrop:bg-black backdrop:bg-opacity-50 backdrop:backdrop-blur-sm animate-slide-in-blurred-top"
+        class="fixed bg-white p-[24px] rounded-[8px] shadow-lg w-[calc(100%-32px)] m-0 max-w-[512px] left-1/2 -translate-x-1/2 -translate-y-1/2 top-1/2 backdrop:bg-black backdrop:bg-opacity-50 backdrop:backdrop-blur-sm animate-slide-in-blurred-top"
         aria-modal="true"
         aria-labelledby="np-content-modal-title"
         id="content-cta-dialog"
@@ -40,14 +40,14 @@ export class Modal extends LitElement {
         @click=${this._handleBackdrop}
       >
         <button
-          class="absolute top-2 right-3 p-2 hover:bg-slate-50 rounded-full transition-colors active:bg-slate-100"
+          class="absolute top-[8px] right-[12px] p-[8px] hover:bg-slate-50 rounded-full transition-colors active:bg-slate-100"
           title="Close modal"
           aria-label="Close"
           @click=${this._handleCloseModal}
         >
           ${Icons.Close}
         </button>
-        <h2 class="text-sm tracking-wide uppercase font-semibold mb-4 text-center" id="np-content-modal-title">
+        <h2 class="text-sm tracking-wide uppercase font-semibold mb-[16px] text-center" id="np-content-modal-title">
           ${this.title}
         </h2>
         <slot></slot>

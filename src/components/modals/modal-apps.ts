@@ -178,7 +178,7 @@ export class ModalApps extends LitElement {
         trusted: false,
       })
 
-      // drop invalid, sort by trusted status 
+      // drop invalid, sort by trusted status
       this.apps = apps
         .filter((a) => !!a.url && !!a.name)
         .sort((a, b) => {
@@ -211,7 +211,7 @@ export class ModalApps extends LitElement {
       return html`<div role="status" class="flex justify-center items-center min-h-[10rem]">
         <svg
           aria-hidden="true"
-          class="w-8 h-8 text-gray-200 animate-spin fill-blue-600"
+          class="w-[32px] h-[32px] text-gray-200 animate-spin fill-blue-600"
           viewBox="0 0 100 101"
           fill="none"
           xmlns="http://www.w3.org/2000/svg"
@@ -229,14 +229,16 @@ export class ModalApps extends LitElement {
       </div>`
     }
 
-    return html` <div class="flex flex-col gap-3 max-h-[600px] overflow-auto">
+    return html` <div class="flex flex-col gap-[12px] max-h-[600px] overflow-auto">
       ${this.apps.map((app) => {
         return html` <a
           href="${app.url}"
           target="_blank"
-          class="py-3 px-2 cursor-pointer flex items-center hover:bg-neutral-100"
+          class="py-[12px] px-[8px] cursor-pointer flex items-center hover:bg-neutral-100"
         >
-          <div class="rounded-md bg-neutral-200 w-7 h-7 mr-2 flex items-center justify-center font-bold">
+          <div
+            class="rounded-[6px] bg-neutral-200 w-[28px] h-[28px] mr-[8px] flex items-center justify-center font-bold"
+          >
             ${app.icon &&
             html`<img
               src=${app.icon}
