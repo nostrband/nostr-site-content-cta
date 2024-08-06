@@ -15,8 +15,15 @@ import { prepareActionsList } from './utils/helpers'
 import './components'
 import { ModalApps, ModalLogin } from './components'
 
-// @ts-ignore
-const ep = window.nostrSite.plugins.register("content-cta");
+async function waitNostrSite() {
+  // @ts-ignore
+  if (!window.nostrSite)
+    await new Promise<Event>((ok) => document.addEventListener("npLoad", ok));
+
+  // @ts-ignore
+  return window.nostrSite.plugins.register("content-cta");
+}
+
 
 @customElement('np-content-cta')
 export class NostrContentCta extends LitElement {
@@ -36,6 +43,8 @@ export class NostrContentCta extends LitElement {
   @state() actionsModalOpen = false
   @state() appsModalOpen = false
 
+  pluginEndpoint: any | undefined = undefined;
+
   connectedCallback(): void {
     super.connectedCallback()
     this.id = 'np-content-cta'
@@ -48,8 +57,11 @@ export class NostrContentCta extends LitElement {
 
     this.buttonColor = this.getAttribute(BUTTON_COLOR_ATTR) || DEFAULT_BUTTON_COLOR
 
-    ep.subscribe("action-open-with", () => {
-      this._handleOpenAppsModal()
+    waitNostrSite().then(ep => {
+      this.pluginEndpoint = ep;
+      this.pluginEndpoint.subscribe("action-open-with", () => {
+        this._handleOpenAppsModal()
+      })
     })
   }
 
@@ -72,7 +84,7 @@ export class NostrContentCta extends LitElement {
   }
 
   private _handleButtonClick(type: string) {
-    ep.dispatch(`action-${type}`);
+    this.pluginEndpoint.dispatch(`action-${type}`);
 
     // close the actions modal
     this.actionsModalOpen = false;
