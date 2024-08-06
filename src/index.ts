@@ -17,6 +17,9 @@ import { prepareActionsList } from './utils/helpers'
 import './components'
 import { ModalApps, ModalLogin } from './components'
 
+// @ts-ignore
+const ep = window.nostrSite.plugins.register('content-cta')
+
 @customElement('np-content-cta')
 export class NostrContentCta extends LitElement {
   static styles = [
@@ -47,8 +50,11 @@ export class NostrContentCta extends LitElement {
     this.actions = prepareActionsList(actions, mainAction)
 
     this.buttonColor = this.getAttribute(BUTTON_COLOR_ATTR) || DEFAULT_BUTTON_COLOR
-
     this.buttonTextColor = this.getAttribute(BUTTON_TEXT_COLOR_ATTR) || DEFAULT_BUTTON_TEXT_COLOR
+
+    ep.subscribe('action-open-with', () => {
+      this._handleOpenAppsModal()
+    })
   }
 
   private _handleOpenActionsModal() {
@@ -70,9 +76,10 @@ export class NostrContentCta extends LitElement {
   }
 
   private _handleButtonClick(type: string) {
-    document.dispatchEvent(new Event(`np-content-cta-${type}`))
-    if (type !== 'openWith') return
-    this._handleOpenAppsModal()
+    ep.dispatch(`action-${type}`)
+
+    // close the actions modal
+    this.actionsModalOpen = false
   }
 
   renderActionsModal() {
