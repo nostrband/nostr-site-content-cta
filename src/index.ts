@@ -4,9 +4,11 @@ import { TWStyles } from './modules/tw/twlit'
 import {
   ACTIONS,
   BUTTON_COLOR_ATTR,
+  BUTTON_TEXT_COLOR_ATTR,
   CTA_LIST_ATTR,
   CTA_MAIN_ACTION_ATTR,
   DEFAULT_BUTTON_COLOR,
+  DEFAULT_BUTTON_TEXT_COLOR,
   DEFAULT_MAIN_ACTION,
 } from './utils/const'
 import { ItemAction } from './utils/types'
@@ -27,6 +29,7 @@ export class NostrContentCta extends LitElement {
   ]
 
   @property({ attribute: false }) buttonColor = DEFAULT_BUTTON_COLOR
+  @property({ attribute: false }) buttonTextColor = DEFAULT_BUTTON_TEXT_COLOR
   @property({ attribute: false }) actions: ItemAction[] = []
   @property({ attribute: false }) mainAction: ItemAction = DEFAULT_MAIN_ACTION
 
@@ -44,6 +47,8 @@ export class NostrContentCta extends LitElement {
     this.actions = prepareActionsList(actions, mainAction)
 
     this.buttonColor = this.getAttribute(BUTTON_COLOR_ATTR) || DEFAULT_BUTTON_COLOR
+
+    this.buttonTextColor = this.getAttribute(BUTTON_TEXT_COLOR_ATTR) || DEFAULT_BUTTON_TEXT_COLOR
   }
 
   private _handleOpenActionsModal() {
@@ -74,14 +79,13 @@ export class NostrContentCta extends LitElement {
     if (!this.actionsModalOpen || this.appsModalOpen) return nothing
     return html`
       <np-content-cta-modal @close-modal=${this._handleCloseModal} .title=${'Actions'}>
-        <div>Login &rarr;</div>
         <div class="flex flex-col gap-2">
           ${this.actions.map((action) => {
             return html` <button
               @click=${() => this._handleButtonClick(action.value)}
-              class="p-2 hover:bg-slate-50 rounded-sm transition-colors active:bg-slate-100 border-2 flex justify-center gap-2"
+              class="p-2 hover:bg-slate-50 rounded-sm transition-colors active:bg-slate-100 border-2 flex justify-center gap-2 items-center"
             >
-              <div>${action.icon}</div>
+              <div class="w-[24px] h-[24px]">${action.icon}</div>
               ${action.label}
             </button>`
           })}
@@ -91,17 +95,18 @@ export class NostrContentCta extends LitElement {
   }
 
   render() {
-    return html`<div class="w-full flex align-middle gap-3">
+    return html`
+      <div class="w-full flex align-middle gap-3">
         <button
-          class="text-white w-full border-2 rounded-[5px] p-[6px] hover:opacity-95 active:opacity-85 transition-opacity flex justify-center gap-2"
-          style="background-color: ${this.buttonColor}"
+          class=" w-full border-2 rounded-[5px] p-[6px] hover:opacity-95 active:opacity-85 transition-opacity flex justify-center gap-2 items-center"
+          style="background-color: ${this.buttonColor}; color: ${this.buttonTextColor}"
           @click=${() => this._handleButtonClick(this.mainAction.value)}
         >
-          <div>${this.mainAction.icon}</div>
+          <div class="w-[24px] h-[24px]">${this.mainAction.icon}</div>
           ${this.mainAction.label}
         </button>
         <button
-          class="p-2 hover:bg-slate-50 rounded-full transition-colors active:bg-slate-100"
+          class="p-2 hover:bg-slate-50 rounded-full transition-colors active:bg-slate-100 "
           @click=${this._handleOpenActionsModal}
         >
           ${Icons.Dots}
@@ -111,9 +116,21 @@ export class NostrContentCta extends LitElement {
       ${this.renderActionsModal()}
 
       <np-content-cta-modal-apps @close-modal=${this._handleCloseModal} .open=${this.appsModalOpen}>
-      </np-content-cta-modal-apps> `
+      </np-content-cta-modal-apps>
+    `
   }
 }
+
+function loadFonts() {
+  const link = document.createElement('link')
+  link.setAttribute('rel', 'stylesheet')
+  link.setAttribute('type', 'text/css')
+  link.setAttribute('href', 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@300..800&display=swap')
+  document.head.appendChild(link)
+}
+
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadFonts)
+else loadFonts()
 
 const openAppsModal = (id: string, kind: number, userPubkey: string) => {
   console.log({ id, kind, userPubkey })

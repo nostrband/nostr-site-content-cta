@@ -58,7 +58,7 @@ export const delay = () => {
     setTimeout(() => {
       const random = Math.floor(Math.random() * 10)
       console.log({ random })
-      if (random > 5) res(MOCK_APPS)
+      if (random > 2) res(MOCK_APPS)
       else rej(new Error('Error!'))
     }, 2000)
   )

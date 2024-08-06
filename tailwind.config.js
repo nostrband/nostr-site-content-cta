@@ -5,13 +5,13 @@ module.exports = {
       keyframes: {
         slideInBlurredTop: {
           '0%': {
-            transform: 'translateY(200%)',
+            transform: 'translate(-50%,-200%)',
             transformOrigin: '50% 0%',
             filter: 'blur(40px)',
             opacity: '0',
           },
           '100%': {
-            transform: 'translateY(0)',
+            transform: 'translate(-50%, -50%)',
             transformOrigin: '50% 50%',
             filter: 'blur(0)',
             opacity: '1',
