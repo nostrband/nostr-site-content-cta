@@ -118,7 +118,9 @@ export class ModalApps extends LitElement {
             // @ts-ignore
             const { data } = window.nostrSite.nostrTools.nip19.decode(id)
             // @ts-ignore
-            const relays = window.nostrSite.renderer.prepareRelays({ outboxRelays: true })
+            const relays = window.nostrSite.renderer.prepareRelays()
+            // crop, otherwise nevent/nprofile/naddr becomes too large
+            if (relays.length > 5) relays.length = 5
             switch (urlTag[2]) {
               case 'nprofile':
                 // @ts-ignore
@@ -138,6 +140,16 @@ export class ModalApps extends LitElement {
               case 'note':
                 // @ts-ignore
                 bech32 = window.nostrSite.nostrTools.nip19.noteEncode(eventId)
+                break
+              case 'naddr':
+                // re-format naddr to add relays
+                // @ts-ignore
+                bech32 = window.nostrSite.nostrTools.nip19.naddrEncode({
+                  pubkey: data.pubkey,
+                  identifier: data.identifier,
+                  kind,
+                  relays
+                })
                 break
             }
           }
