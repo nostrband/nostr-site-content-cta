@@ -19,6 +19,36 @@ const REACTIONS_MOCK_DATA = [
     count: 5,
   },
   {
+    id: 'e1',
+    icon: '🤙',
+    count: 28,
+  },
+  {
+    id: 'e2',
+    icon: '❤️',
+    count: 6,
+  },
+  {
+    id: 'e3',
+    icon: '🚀',
+    count: 5,
+  },
+  {
+    id: 'e1',
+    icon: '🤙',
+    count: 28,
+  },
+  {
+    id: 'e2',
+    icon: '❤️',
+    count: 6,
+  },
+  {
+    id: 'e3',
+    icon: '🚀',
+    count: 5,
+  },
+  {
     id: 'e4',
     icon: html`<svg viewBox="0 0 24 24" class="w-[20px] h-[20px]">
       <path
@@ -48,14 +78,14 @@ export class Reactions extends LitElement {
   @property() reactions = REACTIONS_MOCK_DATA
 
   render() {
-    return html`<div class="flex gap-[4px]">
+    return html`<div class="flex gap-[4px] overflow-auto">
       ${this.reactions.map((reaction) => {
         return html`<button
           title="${typeof reaction.icon === 'string' ? reaction.icon : '+'}"
-          class="flex justify-center items-center gap-[8px] px-[12px] hover:bg-gray-100 h-[32px] active:bg-gray-200 rounded-[6px] min-w-[32px] text-[14px]"
+          class="flex justify-center items-center gap-[8px] px-[12px] hover:bg-gray-100 h-[32px] active:bg-gray-200 rounded-[6px] min-w-[60px] text-[14px]"
         >
           <span>${reaction.icon}</span>
-          ${reaction.count}
+          <span class="text-nowrap">${reaction.count}</span>
         </button>`
       })}
     </div>`
