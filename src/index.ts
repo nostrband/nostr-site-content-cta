@@ -65,6 +65,7 @@ export class NostrContentCta extends LitElement {
       this.pluginEndpoint.subscribe('action-open-with', () => {
         this._handleOpenAppsModal()
       })
+      console.log("content-cta ready");
       this.ready = true
     })
   }
