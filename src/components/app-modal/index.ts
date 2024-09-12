@@ -1,7 +1,7 @@
-import { css, html, LitElement, PropertyValues } from 'lit'
+import { css, html, LitElement } from 'lit'
 import { customElement, property, query } from 'lit/decorators.js'
-import { Icons } from '../assets/icons'
-import { TWStyles } from '../modules/tw/twlit'
+import { TWStyles } from '../../modules/tw/twlit'
+import { Icons } from '../../assets/icons'
 
 @customElement('np-content-cta-modal')
 export class Modal extends LitElement {
