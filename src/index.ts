@@ -43,6 +43,7 @@ export class NostrContentCta extends LitElement {
 
   @state() actionsModalOpen = false
   @state() appsModalOpen = false
+  @state() ready = false
 
   pluginEndpoint: any | undefined = undefined
 
@@ -64,6 +65,7 @@ export class NostrContentCta extends LitElement {
       this.pluginEndpoint.subscribe('action-open-with', () => {
         this._handleOpenAppsModal()
       })
+      this.ready = true
     })
   }
 
@@ -130,8 +132,8 @@ export class NostrContentCta extends LitElement {
             ${Icons.Dots}
           </button>
         </div>
-        <np-content-cta-zaps></np-content-cta-zaps>
-        <np-content-cta-reactions></np-content-cta-reactions>
+        <np-content-cta-zaps .ready=${this.ready}></np-content-cta-zaps>
+        <np-content-cta-reactions .ready=${this.ready}></np-content-cta-reactions>
       </div>
 
       ${this.renderActionsModal()}

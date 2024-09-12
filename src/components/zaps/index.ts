@@ -28,6 +28,22 @@ const ZAPS_MOCK_DATA = [
       name: 'John Doe',
     },
   },
+  {
+    id: 'e4',
+    count: 1000000,
+    profile: {
+      picture: 'https://m.primal.net/IAbB.jpg',
+      name: 'John Doe',
+    },
+  },
+  {
+    id: 'e5',
+    count: 1000000000,
+    profile: {
+      picture: 'https://m.primal.net/IAbB.jpg',
+      name: 'John Doe',
+    },
+  },
 ]
 
 @customElement('np-content-cta-zaps')
@@ -41,6 +57,7 @@ export class Zap extends LitElement {
     TWStyles,
   ]
 
+  @property() ready = false
   @property() zaps = ZAPS_MOCK_DATA
 
   private prepareZapsCount(count: number) {
