@@ -102,7 +102,7 @@ export class Zap extends LitElement {
   }
 
   render() {
-    return html`<div class="flex gap-[4px]">
+    return html`<div class="flex gap-[4px] overflow-auto scrollbar-hide">
       ${this.sortZaps().map((zap) => {
         return html`<div
           class="flex items-center gap-[4px] py-[4px] ps-[8px] pe-[8px] rounded-full border-[1px] border-gray-500 min-w-[90px] hover:bg-gray-100 cursor-pointer"

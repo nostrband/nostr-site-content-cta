@@ -78,7 +78,7 @@ export class Reactions extends LitElement {
   @property() reactions = REACTIONS_MOCK_DATA
 
   render() {
-    return html`<div class="flex gap-[4px] overflow-auto">
+    return html`<div class="flex gap-[4px] overflow-auto scrollbar-hide">
       ${this.reactions.map((reaction) => {
         return html`<button
           title="${typeof reaction.icon === 'string' ? reaction.icon : '+'}"
