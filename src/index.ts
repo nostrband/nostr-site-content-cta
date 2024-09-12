@@ -117,6 +117,8 @@ export class NostrContentCta extends LitElement {
   render() {
     return html`
       <div class="w-full flex flex-col gap-[8px]">
+        <np-content-cta-zaps .ready=${this.ready}></np-content-cta-zaps>
+        <np-content-cta-reactions .ready=${this.ready}></np-content-cta-reactions>
         <div class="w-full flex align-middle gap-[12px]">
           <button
             class=" w-full border-2 rounded-[5px] p-[6px] hover:opacity-95 active:opacity-85 transition-opacity flex justify-center gap-[8px] items-center"
@@ -133,8 +135,6 @@ export class NostrContentCta extends LitElement {
             ${Icons.Dots}
           </button>
         </div>
-        <np-content-cta-zaps .ready=${this.ready}></np-content-cta-zaps>
-        <np-content-cta-reactions .ready=${this.ready}></np-content-cta-reactions>
       </div>
 
       ${this.renderActionsModal()}

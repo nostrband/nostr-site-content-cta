@@ -16,7 +16,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "lit": "^3.1.4"
+    "light-bolt11-decoder": "^3.1.1",
+    "lit": "^3.1.4",
+    "tailwind-scrollbar-hide": "^1.1.7"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^15.2.3",

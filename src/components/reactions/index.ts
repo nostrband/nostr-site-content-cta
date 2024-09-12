@@ -1,7 +1,7 @@
 import { css, html, LitElement } from 'lit'
 import { customElement, property } from 'lit/decorators.js'
 import { TWStyles } from '../../modules/tw/twlit'
-import { getMetaId } from '../../utils/helpers'
+import { getIdAddr, getRelays } from '../../utils/helpers'
 
 interface Reaction {
   id: string
@@ -91,46 +91,23 @@ export class Reactions extends LitElement {
     console.log(Date.now(), 'content-cta reactions loading')
 
     // FIXME tests
-    const eventId = 'note10q9f33dyh9cvsarfuyz32nr6u43smzregechp7w3efgjfs33nmusstjgtn' //getMetaId()
-    let id = ''
-    let addr = ''
-    try {
-      const { type, data } = nostrSite.nostrTools.nip19.decode(eventId)
-      switch (type) {
-        case 'note':
-          id = data
-          break
-        case 'nevent':
-          id = data.id
-          break
-        case 'naddr':
-          addr = data.kind + ':' + data.pubkey + ':' + data.identifier
-          break
-      }
-    } catch (e) {
-      console.log('content-cta bad event id', eventId)
-      return
-    }
+    const [id, addr] = getIdAddr();
+    if (!id && !addr) return;
 
     const filter: any = {
       kinds: [7],
+      limit: 500,
     }
     if (id) filter['#e'] = [id]
     else filter['#a'] = [addr]
 
-    const site = nostrSite.renderer.getSite()
-    const relays = []
-    if (site.contributor_inbox_relays) relays.push(...site.contributor_inbox_relays)
-    if (!relays.length && site.contributor_relays) relays.push(...site.contributor_relays)
-    if (!relays.length) relays.push('wss://relay.nostr.band')
-
-    const events = await nostrSite.renderer.fetchEvents(filter, { relays: relays, timeoutMs: 5000 })
+    const events = await nostrSite.renderer.fetchEvents(filter, { relays: getRelays(), timeoutMs: 5000 })
     console.log(Date.now(), 'content-cta reactions', events)
 
     const reactions: Reaction[] = []
     for (const e of [...events]) {
       const [shortcode, url] = nostrSite.utils.tvs(e, 'emoji') || ['', '']
-      console.log('shortcode, url', shortcode, url, e.id)
+      // console.log('shortcode, url', shortcode, url, e.id)
 
       let id = e.content
       let icon = id
@@ -138,8 +115,8 @@ export class Reactions extends LitElement {
       if (url && e.content.trim() === ':' + shortcode + ':') {
         id = url
         icon = html`<img src=${url} alt=${shortcode} height="24" width="24" />`
-      } else if (!id || id.length > 2) {
-        console.log('emoji', id, id.length)
+      } else if (!id || (/([\x00-\x7F])/.test(id) && id.length > 1)) {
+        console.log('bad emoji', id, e.id)
         id = '+'
       }
       if (id === '+') icon = PLUS_REACTION
@@ -166,11 +143,11 @@ export class Reactions extends LitElement {
   }
 
   render() {
-    return html`<div class="flex gap-[4px] overflow-auto">
+    return html`<div class="flex gap-[4px] overflow-auto scrollbar-hide">
       ${this.reactions.map((reaction) => {
         return html`<button
-          title="${typeof reaction.icon === 'string' ? reaction.icon : reaction.id}"
-          class="flex justify-center items-center gap-[8px] px-[12px] hover:bg-gray-100 h-[32px] active:bg-gray-200 rounded-[6px] min-w-[60px] text-[14px]"
+          title="${reaction.id}"
+          class="flex justify-center items-center gap-[8px] px-[12px] hover:bg-gray-100 h-[32px] active:bg-gray-200 rounded-[5px] min-w-[60px] text-[14px]"
         >
           <span class="text-nowrap">${reaction.icon}</span>
           <span class="text-nowrap">${reaction.count}</span>
