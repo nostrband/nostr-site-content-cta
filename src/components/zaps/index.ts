@@ -151,10 +151,6 @@ export class Zaps extends LitElement {
     return formatter.format(amount)
   }
 
-  private sortZaps() {
-    return this.zaps.sort((a, b) => b.amount - a.amount)
-  }
-
   async loadData() {
     console.log(Date.now(), 'content-cta zaps starting')
     // @ts-ignore
@@ -187,11 +183,13 @@ export class Zaps extends LitElement {
     for (const e of [...events]) {
       let pubkey = ''
       let amount = 0
+      let comment = ''
       try {
         const desc = JSON.parse(nostrSite.utils.tv(e, 'description'))
         if (desc.pubkey.length !== 64) throw new Error('Bad zap pubkey')
         pubkey = desc.pubkey
         amount = Number(nostrSite.utils.tv(desc, 'amount'))
+        comment = desc.content
         if (!amount) {
           const req = decodeBolt11(nostrSite.utils.tv(e, 'bolt11'))
           amount = Number(req.sections.find((s: any) => s.name === 'amount')!.value)
@@ -212,7 +210,7 @@ export class Zaps extends LitElement {
           picture: '',
           name: nostrSite.nostrTools.nip19.npubEncode(pubkey),
         },
-        comment: '', // @TODO add comments
+        comment,
       })
     }
 
