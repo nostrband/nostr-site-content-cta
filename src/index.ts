@@ -43,7 +43,7 @@ export class NostrContentCta extends LitElement {
 
   @state() actionsModalOpen = false
   @state() appsModalOpen = false
-  @state() ready = false
+  @state() ready = true
 
   pluginEndpoint: any | undefined = undefined
 
@@ -65,7 +65,7 @@ export class NostrContentCta extends LitElement {
       this.pluginEndpoint.subscribe('action-open-with', () => {
         this._handleOpenAppsModal()
       })
-      console.log("content-cta ready");
+      console.log('content-cta ready')
       this.ready = true
     })
   }

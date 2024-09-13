@@ -1,5 +1,5 @@
 import { css, html, LitElement } from 'lit'
-import { customElement, property } from 'lit/decorators.js'
+import { customElement, property, query } from 'lit/decorators.js'
 import { TWStyles } from '../../modules/tw/twlit'
 import { getIdAddr, getRelays } from '../../utils/helpers'
 
@@ -77,6 +77,7 @@ export class Reactions extends LitElement {
 
   @property() ready = false
   @property() reactions: Reaction[] = []
+  @query('#reactions-scroll-container') scrollContainer?: HTMLDivElement | null
 
   async loadData() {
     console.log(Date.now(), 'content-cta reactions starting')
@@ -91,8 +92,8 @@ export class Reactions extends LitElement {
     console.log(Date.now(), 'content-cta reactions loading')
 
     // FIXME tests
-    const [id, addr] = getIdAddr();
-    if (!id && !addr) return;
+    const [id, addr] = getIdAddr()
+    if (!id && !addr) return
 
     const filter: any = {
       kinds: [7],
@@ -142,8 +143,31 @@ export class Reactions extends LitElement {
     }
   }
 
+  handleForceScrollSideways(event: WheelEvent) {
+    event.preventDefault()
+    let [x, y] = [event.deltaX, event.deltaY]
+    let magnitude
+
+    if (x === 0) {
+      magnitude = y > 0 ? -30 : 30
+    } else {
+      magnitude = x
+    }
+    this.scrollContainer?.scrollBy({
+      left: magnitude,
+    })
+  }
+
+  firstUpdated() {
+    if (this.scrollContainer) {
+      this.scrollContainer.onwheel = (event) => {
+        this.handleForceScrollSideways(event)
+      }
+    }
+  }
+
   render() {
-    return html`<div class="flex gap-[4px] overflow-auto scrollbar-hide">
+    return html`<div class="flex gap-[4px] overflow-auto scrollbar-hide" id="reactions-scroll-container">
       ${this.reactions.map((reaction) => {
         return html`<button
           title="${reaction.id}"
