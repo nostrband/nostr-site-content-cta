@@ -23,7 +23,7 @@ const ZAPS_MOCK_DATA: Zap[] = [
     amount: 2800,
     pubkey: '',
     profile: {
-      picture: 'https://void.cat/d/LdLxqc3dPmtZboZ1NTe4HP',
+      picture: '',
       name: 'John Doe',
     },
     comment: 'Some cool comment, and it is very long comment ',
@@ -260,17 +260,23 @@ export class Zaps extends LitElement {
     }
   }
 
+  getProfilePicture(picture: string, name: string) {
+    const username = name || 'User'
+    if (!picture) return Icons.Profile
+    return html`<img alt="${username}" src="${picture}" class="rounded-full h-[24px] w-[24px]" />`
+  }
+
   render() {
     return html`<div class="flex gap-[4px] overflow-auto scrollbar-hide" id="zaps-scroll-container">
       ${this.zaps.map((zap) => {
         return html`<div
-          class="flex items-center gap-[8px] py-[4px] ps-[8px] pe-[8px] rounded-full border-[1px] border-gray-500 hover:bg-gray-100 cursor-pointer"
+          class="flex items-center gap-[8px] py-[4px] ps-[8px] pe-[8px] rounded-[5px] border-[1px] border-gray-300 hover:bg-gray-100 cursor-pointer"
         >
           ${Icons.Zap}
           <span class="text-[14px] font-medium text-nowrap">${this.prepareZapsAmount(zap.amount)}</span>
 
           <span title="${zap.profile.name}" class="h-[24px] w-[24px] inline-block">
-            <img alt="${zap.profile.name}" src="${zap.profile.picture}" class="rounded-full h-[24px] w-[24px]" />
+            ${this.getProfilePicture(zap.profile.picture, zap.profile.name)}
           </span>
           <p class="text-[14px] font-medium text-nowrap max-w-[200px] overflow-hidden text-ellipsis">${zap.comment}</p>
         </div>`
