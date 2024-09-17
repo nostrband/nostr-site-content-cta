@@ -16,6 +16,7 @@ import { Icons } from './assets/icons'
 import { prepareActionsList } from './utils/helpers'
 import './components'
 import { ModalApps, ModalLogin } from './components'
+import 'emoji-picker-element'
 
 async function waitNostrSite() {
   // @ts-ignore
@@ -110,6 +111,8 @@ export class NostrContentCta extends LitElement {
             </button>`
           })}
         </div>
+
+        <emoji-picker class="light w-full"></emoji-picker>
       </np-content-cta-modal>
     `
   }

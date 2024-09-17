@@ -17,6 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@rollup/plugin-commonjs": "^26.0.1",
+    "emoji-picker-element": "^1.22.6",
     "light-bolt11-decoder": "^3.1.1",
     "lit": "^3.1.4",
     "tailwind-scrollbar-hide": "^1.1.7"

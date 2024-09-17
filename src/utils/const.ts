@@ -15,17 +15,22 @@ const ACTIONS: Record<string, ItemAction> = {
   repost: {
     value: 'repost',
     label: 'Repost',
-    icon: Icons.Share,
+    icon: Icons.Repost,
   },
   follow: {
     value: 'follow',
     label: 'Follow',
     icon: Icons.Follow,
   },
-  "open-with": {
+  'open-with': {
     value: 'open-with',
     label: 'Open with',
     icon: Icons.LinkOut,
+  },
+  share: {
+    value: 'share',
+    label: 'Share',
+    icon: Icons.Share,
   },
 }
 
