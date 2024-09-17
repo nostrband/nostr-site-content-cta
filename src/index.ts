@@ -43,6 +43,7 @@ export class NostrContentCta extends LitElement {
 
   @state() actionsModalOpen = false
   @state() appsModalOpen = false
+  @state() ready = true
 
   pluginEndpoint: any | undefined = undefined
 
@@ -64,6 +65,8 @@ export class NostrContentCta extends LitElement {
       this.pluginEndpoint.subscribe('action-open-with', () => {
         this._handleOpenAppsModal()
       })
+      console.log('content-cta ready')
+      this.ready = true
     })
   }
 
@@ -113,21 +116,25 @@ export class NostrContentCta extends LitElement {
 
   render() {
     return html`
-      <div class="w-full flex align-middle gap-[12px]">
-        <button
-          class=" w-full border-2 rounded-[5px] p-[6px] hover:opacity-95 active:opacity-85 transition-opacity flex justify-center gap-[8px] items-center"
-          style="background-color: ${this.buttonColor}; color: ${this.buttonTextColor}"
-          @click=${() => this._handleButtonClick(this.mainAction.value)}
-        >
-          <div class="w-[24px] h-[24px]">${this.mainAction.icon}</div>
-          ${this.mainAction.label}
-        </button>
-        <button
-          class="p-[8px] hover:bg-slate-50 rounded-full transition-colors active:bg-slate-100 "
-          @click=${this._handleOpenActionsModal}
-        >
-          ${Icons.Dots}
-        </button>
+      <div class="w-full flex flex-col gap-[8px]">
+        <np-content-cta-zaps .ready=${this.ready}></np-content-cta-zaps>
+        <np-content-cta-reactions .ready=${this.ready}></np-content-cta-reactions>
+        <div class="w-full flex align-middle gap-[12px]">
+          <button
+            class=" w-full border-2 rounded-[5px] p-[6px] hover:opacity-95 active:opacity-85 transition-opacity flex justify-center gap-[8px] items-center"
+            style="background-color: ${this.buttonColor}; color: ${this.buttonTextColor}"
+            @click=${() => this._handleButtonClick(this.mainAction.value)}
+          >
+            <div class="w-[24px] h-[24px]">${this.mainAction.icon}</div>
+            ${this.mainAction.label}
+          </button>
+          <button
+            class="p-[8px] hover:bg-slate-50 rounded-[5px] transition-colors active:bg-slate-100 "
+            @click=${this._handleOpenActionsModal}
+          >
+            ${Icons.Dots}
+          </button>
+        </div>
       </div>
 
       ${this.renderActionsModal()}

@@ -1,3 +1,5 @@
-export * from './modal'
+export * from './app-modal'
 export * from './modals/modal-apps'
 export * from './modals/modal-login'
+export * from './reactions'
+export * from './zaps'
