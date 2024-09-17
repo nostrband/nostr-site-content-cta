@@ -152,7 +152,8 @@ export class Zaps extends LitElement {
   }
 
   async loadData() {
-    console.log(Date.now(), 'content-cta zaps starting')
+    // @ts-ignore
+    console.log(Date.now(), 'content-cta zaps starting', window.nostrSite)
     // @ts-ignore
     const nostrSite: any = window.nostrSite
     if (!nostrSite) {

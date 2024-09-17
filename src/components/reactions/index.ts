@@ -80,7 +80,8 @@ export class Reactions extends LitElement {
   @query('#reactions-scroll-container') scrollContainer?: HTMLDivElement | null
 
   async loadData() {
-    console.log(Date.now(), 'content-cta reactions starting')
+    // @ts-ignore
+    console.log(Date.now(), 'content-cta reactions starting', window.nostrSite)
     // @ts-ignore
     const nostrSite: any = window.nostrSite
     if (!nostrSite) {

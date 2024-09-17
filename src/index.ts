@@ -43,7 +43,7 @@ export class NostrContentCta extends LitElement {
 
   @state() actionsModalOpen = false
   @state() appsModalOpen = false
-  @state() ready = true
+  @state() ready = false
 
   pluginEndpoint: any | undefined = undefined
 
