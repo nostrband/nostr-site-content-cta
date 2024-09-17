@@ -171,7 +171,7 @@ export class Reactions extends LitElement {
       ${this.reactions.map((reaction) => {
         return html`<button
           title="${reaction.id}"
-          class="flex justify-center items-center gap-[8px] px-[12px] hover:bg-gray-100 h-[32px] active:bg-gray-200 rounded-[5px] min-w-[60px] text-[14px]"
+          class="flex justify-center items-center gap-[8px] px-[12px] border-[1px] border-gray-300 hover:bg-gray-100 h-[32px] active:bg-gray-200 rounded-[5px] min-w-[60px] text-[14px]"
         >
           <span class="text-nowrap">${reaction.icon}</span>
           <span class="text-nowrap">${reaction.count}</span>
