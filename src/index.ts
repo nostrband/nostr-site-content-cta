@@ -10,6 +10,7 @@ import {
   DEFAULT_BUTTON_COLOR,
   DEFAULT_BUTTON_TEXT_COLOR,
   DEFAULT_MAIN_ACTION,
+  NPUB_ATTR,
 } from './utils/const'
 import { ItemAction } from './utils/types'
 import { Icons } from './assets/icons'
@@ -41,6 +42,7 @@ export class NostrContentCta extends LitElement {
   @property({ attribute: false }) buttonTextColor = DEFAULT_BUTTON_TEXT_COLOR
   @property({ attribute: false }) actions: ItemAction[] = []
   @property({ attribute: false }) mainAction: ItemAction = DEFAULT_MAIN_ACTION
+  @property({ attribute: NPUB_ATTR }) npub: string = ''
 
   @state() actionsModalOpen = false
   @state() showEmojiPicker = false
@@ -67,6 +69,12 @@ export class NostrContentCta extends LitElement {
       this.pluginEndpoint = ep
       this.pluginEndpoint.subscribe('action-open-with', () => {
         this._handleOpenAppsModal()
+      })
+      this.pluginEndpoint.subscribe('action-like', () => {
+        this._handleShowEmojiPicker()
+      })
+      this.pluginEndpoint.subscribe('action-share', () => {
+        this._handleShowShareOptions()
       })
       console.log('content-cta ready')
       this.ready = true
@@ -112,13 +120,6 @@ export class NostrContentCta extends LitElement {
   private _handleButtonClick(type: string) {
     this.pluginEndpoint?.dispatch(`action-${type}`)
 
-    if (type === 'like') {
-      return this._handleShowEmojiPicker()
-    }
-    if (type === 'share') {
-      return this._handleShowShareOptions()
-    }
-
     // close the actions modal
     this.actionsModalOpen = false
   }
@@ -134,6 +135,7 @@ export class NostrContentCta extends LitElement {
               @click=${() => this._handleButtonClick(action.value)}
               id="${action.value}"
               class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-2 flex justify-center gap-[8px] items-center"
+              ${action.value === this.mainAction.value ? `style="background-color: ${this.buttonColor}"` : ``}
             >
               <div class="w-[24px] h-[24px]">${action.icon}</div>
               ${action.label}
@@ -147,8 +149,8 @@ export class NostrContentCta extends LitElement {
   render() {
     return html`
       <div class="w-full flex flex-col gap-[8px]">
-        <np-content-cta-zaps .ready=${this.ready}></np-content-cta-zaps>
-        <np-content-cta-reactions .ready=${this.ready}></np-content-cta-reactions>
+        <np-content-cta-zaps .ready=${this.ready} .npub=${this.npub} .accent=${this.buttonColor}></np-content-cta-zaps>
+        <np-content-cta-reactions .ready=${this.ready} .npub=${this.npub} .accent=${this.buttonColor}></np-content-cta-reactions>
         <div class="w-full flex align-middle gap-[12px]">
           <button
             class=" w-full border-2 rounded-[5px] p-[6px] hover:opacity-95 active:opacity-85 transition-opacity flex justify-center gap-[8px] items-center"

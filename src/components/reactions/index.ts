@@ -7,6 +7,8 @@ interface Reaction {
   id: string
   icon: any
   count: number
+  pubkeys?: string[]
+  accent?: boolean
 }
 
 const PLUS_REACTION = html`<svg viewBox="0 0 24 24" class="w-[20px] h-[20px]">
@@ -31,7 +33,7 @@ const MINUS_REACTION = html`<svg viewBox="0 0 24 24" class="w-[20px] h-[20px]">
   ></path>
 </svg>`
 
-const REACTIONS_MOCK_DATA = [
+const REACTIONS_MOCK_DATA: Reaction[] = [
   {
     id: 'e1',
     icon: '🤙',
@@ -76,6 +78,8 @@ export class Reactions extends LitElement {
   ]
 
   @property() ready = false
+  @property() npub = ''
+  @property() accent = ''
   @property() reactions: Reaction[] = []
   @query('#reactions-scroll-container') scrollContainer?: HTMLDivElement | null
 
@@ -104,7 +108,11 @@ export class Reactions extends LitElement {
     else filter['#a'] = [addr]
 
     const events = await nostrSite.renderer.fetchEvents(filter, { relays: getRelays(), timeoutMs: 5000 })
-    console.log(Date.now(), 'content-cta reactions', events)
+    console.log(Date.now(), 'content-cta reaction events', [...events])
+
+    let pubkey = ''
+    if (this.npub) pubkey = nostrSite.nostrTools.nip19.decode(this.npub).data
+    console.log('reactions user pubkey', this.npub, pubkey)
 
     const reactions: Reaction[] = []
     for (const e of [...events]) {
@@ -125,22 +133,50 @@ export class Reactions extends LitElement {
       else if (id === '-') icon = MINUS_REACTION
 
       const r = reactions.find((r) => r.id === id)
-      if (r) r.count++
-      else
+      if (r) {
+        r.count++
+        r.pubkeys!.push(e.pubkey)
+      } else {
         reactions.push({
           id,
           icon,
           count: 1,
+          pubkeys: [e.pubkey],
         })
+      }
     }
-    reactions.sort((a, b) => b.count - a.count)
+    console.log('content-cta reactions', reactions)
 
     this.reactions = reactions
+
+    this.prepareData()
+  }
+
+  prepareData() {
+    if (!this.reactions.length) return
+
+    // @ts-ignore
+    const nostrSite: any = window.nostrSite
+
+    let pubkey = ''
+    if (this.npub) pubkey = nostrSite.nostrTools.nip19.decode(this.npub).data
+    console.log('reactions user pubkey', this.npub, pubkey)
+
+    this.reactions.forEach((r) => (r.accent = Boolean(pubkey && r.pubkeys && r.pubkeys.includes(pubkey))))
+
+    this.reactions.sort((a, b) => {
+      if (a.accent === b.accent) return b.count - a.count
+      return a.accent ? -1 : 1
+    })
   }
 
   updated(changedProperties: { has: (args: string) => any }) {
-    if (changedProperties.has('ready') && this.ready) {
-      this.loadData()
+    if (changedProperties.has('ready')) {
+      if (this.ready) this.loadData()
+    }
+
+    if (changedProperties.has('npub')) {
+      this.prepareData()
     }
   }
 
@@ -171,8 +207,9 @@ export class Reactions extends LitElement {
     return html`<div class="flex gap-[4px] overflow-auto scrollbar-hide" id="reactions-scroll-container">
       ${this.reactions.map((reaction) => {
         return html`<button
-          title="${reaction.id}"
-          class="flex justify-center items-center gap-[8px] px-[12px] border-[1px] border-gray-300 hover:bg-gray-100 h-[32px] active:bg-gray-200 rounded-[5px] min-w-[60px] text-[14px]"
+          title="${reaction.id}${reaction.accent ? ' - your reaction' : ''}"
+          class="flex justify-center items-center gap-[8px] px-[12px] border-[1px] border-gray-300 hover:bg-gray-100 h-[32px] active:bg-gray-200 rounded-[5px] min-w-[60px] text-[14px] ${reaction.accent}"
+          style="${reaction.accent ? `border: 1px solid ${this.accent}` : ''}"
         >
           <span class="text-nowrap">${reaction.icon}</span>
           <span class="text-nowrap">${reaction.count}</span>
