@@ -55,7 +55,7 @@ export class ModalShareApps extends LitElement {
   render() {
     if (!this.open) return nothing
     return html`
-      <np-content-cta-modal @close-modal=${this._handleClose} .title=${'Share with'}>
+      <np-content-cta-modal @close-modal=${this._handleClose} .title=${'Share'}>
         <div class="flex flex-col gap-[8px] max-h-[600px] overflow-auto">
           ${this.apps.map((app) => {
             return html` <button

@@ -38,6 +38,7 @@ const CTA_LIST_ATTR = 'data-cta-list'
 const CTA_MAIN_ACTION_ATTR = 'data-cta-main'
 const BUTTON_COLOR_ATTR = 'data-button-color'
 const BUTTON_TEXT_COLOR_ATTR = 'data-text-button-color'
+const NPUB_ATTR = 'data-user-npub'
 
 const DEFAULT_BUTTON_COLOR = '#245b9e'
 const DEFAULT_BUTTON_TEXT_COLOR = '#fff'
@@ -52,4 +53,5 @@ export {
   DEFAULT_BUTTON_TEXT_COLOR,
   DEFAULT_MAIN_ACTION,
   ACTIONS,
+  NPUB_ATTR
 }

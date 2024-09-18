@@ -143,6 +143,8 @@ export class Zaps extends LitElement {
   ]
 
   @property() ready = false
+  @property() npub = ''
+  @property() accent = ''
   @property() zaps: Zap[] = []
   @query('#zaps-scroll-container') scrollContainer?: HTMLDivElement | null
 
