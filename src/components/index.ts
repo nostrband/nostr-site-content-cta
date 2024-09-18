@@ -1,5 +1,7 @@
 export * from './app-modal'
 export * from './modals/modal-apps'
 export * from './modals/modal-login'
+export * from './modals/modal-emoji'
+export * from './modals/modal-share-apps'
 export * from './reactions'
 export * from './zaps'

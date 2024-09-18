@@ -43,6 +43,8 @@ export class NostrContentCta extends LitElement {
   @property({ attribute: false }) mainAction: ItemAction = DEFAULT_MAIN_ACTION
 
   @state() actionsModalOpen = false
+  @state() showEmojiPicker = false
+  @state() showShareOptions = false
   @state() appsModalOpen = false
   @state() ready = true
 
@@ -84,26 +86,53 @@ export class NostrContentCta extends LitElement {
     this.appsModalOpen = false
   }
 
+  private _handleShowEmojiPicker() {
+    this.showEmojiPicker = true
+  }
+
+  private _handleCloseEmojiPicker() {
+    this.showEmojiPicker = false
+  }
+
+  private _handleShowShareOptions() {
+    this.showShareOptions = true
+  }
+
+  private _handleCloseShareOptions() {
+    this.showShareOptions = false
+  }
+
   private _handleCloseModal() {
     this._handleCloseActionsModal()
     this._handleCloseAppsModal()
+    this._handleCloseEmojiPicker()
+    this._handleCloseShareOptions()
   }
 
   private _handleButtonClick(type: string) {
     this.pluginEndpoint?.dispatch(`action-${type}`)
+
+    if (type === 'like') {
+      return this._handleShowEmojiPicker()
+    }
+    if (type === 'share') {
+      return this._handleShowShareOptions()
+    }
 
     // close the actions modal
     this.actionsModalOpen = false
   }
 
   renderActionsModal() {
-    if (!this.actionsModalOpen || this.appsModalOpen) return nothing
+    if (!this.actionsModalOpen || this.appsModalOpen || this.showEmojiPicker || this.showShareOptions) return nothing
+
     return html`
       <np-content-cta-modal @close-modal=${this._handleCloseModal} .title=${'Actions'}>
         <div class="flex flex-col gap-[8px]">
           ${this.actions.map((action) => {
             return html` <button
               @click=${() => this._handleButtonClick(action.value)}
+              id="${action.value}"
               class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-2 flex justify-center gap-[8px] items-center"
             >
               <div class="w-[24px] h-[24px]">${action.icon}</div>
@@ -111,8 +140,6 @@ export class NostrContentCta extends LitElement {
             </button>`
           })}
         </div>
-
-        <emoji-picker class="light w-full"></emoji-picker>
       </np-content-cta-modal>
     `
   }
@@ -144,6 +171,12 @@ export class NostrContentCta extends LitElement {
 
       <np-content-cta-modal-apps @close-modal=${this._handleCloseModal} .open=${this.appsModalOpen}>
       </np-content-cta-modal-apps>
+
+      <np-content-cta-modal-emoji @close-modal=${this._handleCloseModal} .open=${this.showEmojiPicker}>
+      </np-content-cta-modal-emoji>
+
+      <np-content-cta-modal-share-apps @close-modal=${this._handleCloseModal} .open=${this.showShareOptions}>
+      </np-content-cta-modal-share-apps>
     `
   }
 }
