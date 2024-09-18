@@ -46,7 +46,7 @@ export class NostrContentCta extends LitElement {
   @state() showEmojiPicker = false
   @state() showShareOptions = false
   @state() appsModalOpen = false
-  @state() ready = true
+  @state() ready = false
 
   pluginEndpoint: any | undefined = undefined
 
@@ -159,7 +159,7 @@ export class NostrContentCta extends LitElement {
             ${this.mainAction.label}
           </button>
           <button
-            class="p-[8px] hover:bg-slate-50 rounded-full transition-colors active:bg-slate-100 "
+            class="p-[8px] hover:bg-slate-50 rounded-[5px] transition-colors active:bg-slate-100 "
             @click=${this._handleOpenActionsModal}
           >
             ${Icons.Dots}

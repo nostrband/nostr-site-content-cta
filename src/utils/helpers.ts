@@ -36,7 +36,7 @@ function getMetaId() {
 }
 
 export function getIdAddr() {
-  const eventId = 'note10q9f33dyh9cvsarfuyz32nr6u43smzregechp7w3efgjfs33nmusstjgtn' //getMetaId()
+  const eventId = getMetaId()
   let id = ''
   let addr = ''
   try {
