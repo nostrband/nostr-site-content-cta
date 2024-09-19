@@ -12,11 +12,11 @@ const ACTIONS: Record<string, ItemAction> = {
     label: 'Like',
     icon: Icons.Like,
   },
-  repost: {
-    value: 'repost',
-    label: 'Repost',
-    icon: Icons.Repost,
-  },
+  // repost: {
+  //   value: 'repost',
+  //   label: 'Repost',
+  //   icon: Icons.Repost,
+  // },
   follow: {
     value: 'follow',
     label: 'Follow',

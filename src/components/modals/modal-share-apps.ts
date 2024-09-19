@@ -64,8 +64,12 @@ export class ModalShareApps extends LitElement {
   ]
 
   @property() open = false
+  @property() ready = false
+  @property() publishNote?: (text: string) => Promise<void>
+  @property() accent = ''
 
   @state() apps: any[] = APPS
+  @state() nostrText: string = ''
   @state() nostrShareModalOpen = false
 
   private _handleOpenNostrShareModal() {
@@ -125,18 +129,52 @@ export class ModalShareApps extends LitElement {
     if (url) window.open(url, '_blank', 'noopener,noreferrer')
   }
 
-  render() {
-    if (!this.open) return nothing
+  private async _initNostrText() {
 
+    // @ts-ignore
+    const nostrSite: any = window.nostrSite
+    if (!nostrSite) return;
+
+    // wait until renderer starts
+    await nostrSite.tabReady
+
+    const id = document.querySelector('meta[name="nostr:id"]')?.getAttribute('content') || ''
+    const nip19 = nostrSite.nostrTools.nip19
+    const renderer = nostrSite.renderer
+    const site = renderer.getSite()
+    const relay = site.contributor_relays && site.contributor_relays.length ? site.contributor_relays[0] : ''
+
+    let text = id
+    if (relay) {
+      const { type, data } = nip19.decode(id)
+      if (type === 'note') text = nip19.neventEncode({ id: data, relays: [relay] })
+      else if (type === 'naddr') text = nip19.naddrEncode({ ...data, relays: [relay] })
+    }
+    console.log('text', text, id, relay)
+    this.nostrText = `\nnostr:${text}`
+  }
+
+  updated(changedProperties: { has: (args: string) => any }) {
+    if (changedProperties.has('ready') && this.ready) {
+      this._initNostrText();
+    }
+  }
+
+  render() {
     if (this.nostrShareModalOpen) {
       return html`
         <np-content-cta-modal-nostr-share
           @close-modal=${this._handleCloseNostrShareModal}
           .open=${this.nostrShareModalOpen}
+          .publish=${this.publishNote}
+          .text=${this.nostrText}
+          .accent=${this.accent}
         >
         </np-content-cta-modal-nostr-share>
       `
     }
+
+    if (!this.open) return nothing
 
     return html`
       <np-content-cta-modal @close-modal=${this._handleClose} .title=${'Share'}>

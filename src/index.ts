@@ -15,7 +15,7 @@ import {
 } from './utils/const'
 import { ItemAction } from './utils/types'
 import { Icons } from './assets/icons'
-import { prepareActionsList, publishReaction } from './utils/helpers'
+import { prepareActionsList, publishFollow, publishNote, publishReaction } from './utils/helpers'
 import './components'
 import { ModalApps, ModalLogin } from './components'
 import 'emoji-picker-element'
@@ -79,8 +79,11 @@ export class NostrContentCta extends LitElement {
         this._handleShowShareOptions()
       })
       this.pluginEndpoint.subscribe('event-published', (e: any) => {
-        console.log("content-cta on event published", e);
+        console.log('content-cta on event published', e)
         this.updateTrigger = Date.now()
+      })
+      this.pluginEndpoint.subscribe('action-follow', () => {
+        this._handleFollow()
       })
       console.log('content-cta ready')
       this.ready = true
@@ -137,6 +140,25 @@ export class NostrContentCta extends LitElement {
       // a generalized way to notify nostr-site about the new relevant event
       this.pluginEndpoint?.dispatch('event-published', nostrEvent)
     }
+  }
+
+  private async _publishNote(text: string) {
+    const nostrEvent = await publishNote(text)
+    this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+  }
+
+  private async _handleFollow() {
+    const npub = document.querySelector('meta[name="nostr:author"]')?.getAttribute("content");
+    console.log("follow npub", npub);
+    if (!npub || !npub.startsWith("npub")) return;
+
+    // @ts-ignore
+    const nostrSite = window.nostrSite;
+    const pubkey = nostrSite.nostrTools.nip19.decode(npub).data;
+    console.log("follow pubkey", pubkey);
+
+    const nostrEvent = await publishFollow(pubkey);
+    this.pluginEndpoint?.dispatch('event-published', nostrEvent)
   }
 
   renderActionsModal() {
@@ -206,7 +228,13 @@ export class NostrContentCta extends LitElement {
       >
       </np-content-cta-modal-emoji>
 
-      <np-content-cta-modal-share-apps @close-modal=${this._handleCloseModal} .open=${this.showShareOptions}>
+      <np-content-cta-modal-share-apps
+        @close-modal=${this._handleCloseModal}
+        .open=${this.showShareOptions}
+        .publishNote=${this._publishNote.bind(this)}
+        .accent=${this.buttonColor}
+        .ready=${this.ready}
+      >
       </np-content-cta-modal-share-apps>
     `
   }

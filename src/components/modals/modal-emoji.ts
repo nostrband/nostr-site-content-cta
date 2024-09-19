@@ -4,7 +4,6 @@ import { TWStyles } from '../../modules/tw/twlit'
 import { Picker } from 'emoji-picker-element'
 import { EmojiClickEvent } from 'emoji-picker-element/shared'
 import { ref } from 'lit/directives/ref.js'
-import { publishReaction } from '../../utils/helpers'
 
 @customElement('np-content-cta-modal-emoji')
 export class ModalEmoji extends LitElement {

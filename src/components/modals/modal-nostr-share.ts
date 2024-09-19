@@ -14,19 +14,23 @@ export class ModalNostrShare extends LitElement {
   ]
 
   @property() open = false
+  @property() text = ''
+  @property() publish?: (text: string) => Promise<void>
+  @property() accent = ''
   @query('#np-textarea')
   textarea!: HTMLTextAreaElement
 
-  private _getMessageValue() {
-    this.textarea.value = 'Something cool'
-  }
-
   protected firstUpdated() {
-    this._getMessageValue()
+    this.textarea.value = this.text
+    this.textarea.focus()
   }
 
   private _postMessage() {
     console.log(this.textarea.value)
+    if (this.textarea.value && this.publish) {
+      this._handleClose()
+      this.publish(this.textarea.value)
+    }
   }
 
   private _handleClose() {
@@ -39,16 +43,18 @@ export class ModalNostrShare extends LitElement {
       <np-content-cta-modal @close-modal=${this._handleClose} .title=${'Share on Nostr'}>
         <div class="flex flex-col gap-[8px]">
           <textarea
-            class="w-full outline-none border-neutral-300 border-[1.5px] rounded-md p-2 py-3 focus:border-violet-500 placeholder:font-light transition-colors"
+            class="w-full outline-none border-neutral-300 border-[1.5px] rounded-md p-2 py-3 placeholder:font-light transition-colors"
+            style="${this.accent ? `border: 1px solid ${this.accent}` : ''}"
             rows="5"
             placeholder="Enter something"
             id="np-textarea"
           ></textarea>
           <button
-            class="bg-violet-600 rounded-lg p-2 text-white hover:bg-violet-700 active:bg-violet-800 transition-colors"
+            class="rounded-lg p-2 text-white transition-colors"
+            style="${this.accent ? `background-color: ${this.accent}` : ''}"
             @click=${this._postMessage}
           >
-            Post on Nostr
+            Post
           </button>
         </div>
       </np-content-cta-modal>

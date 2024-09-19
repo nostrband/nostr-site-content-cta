@@ -2,7 +2,7 @@ import { css, html, LitElement } from 'lit'
 import { customElement, property, query, state } from 'lit/decorators.js'
 import { TWStyles } from '../../modules/tw/twlit'
 import { Icons } from '../../assets/icons'
-import { getIdAddr, getRelays } from '../../utils/helpers'
+import { getIdAddr, getAuthorRelays } from '../../utils/helpers'
 // @ts-ignore
 import { decode as decodeBolt11 } from 'light-bolt11-decoder'
 
@@ -183,7 +183,7 @@ export class Zaps extends LitElement {
     if (id) filter['#e'] = [id]
     else filter['#a'] = [addr]
 
-    const events = await nostrSite.renderer.fetchEvents(filter, { relays: getRelays(), timeoutMs: 5000 })
+    const events = await nostrSite.renderer.fetchEvents(filter, { relays: getAuthorRelays(), timeoutMs: 5000 })
     console.log(Date.now(), 'content-cta zaps', events)
 
     // get zap authors and amounts

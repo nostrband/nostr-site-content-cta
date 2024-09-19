@@ -1,6 +1,8 @@
 import { ACTIONS } from './const'
 import { ItemAction } from './types'
 
+const userRelaysCache = new Map<string, string[]>()
+
 export const prepareActionsList = (actions: string, mainActionKey: string) => {
   const actionsList = actions.split(',')
   const modalActions = actionsList
@@ -76,13 +78,31 @@ export function getAuthorPubkey() {
   return ''
 }
 
-export function getRelays() {
+export function getAuthorRelays() {
   // @ts-ignore
   const site = window.nostrSite.renderer.getSite()
   const relays = []
   if (site.contributor_inbox_relays) relays.push(...site.contributor_inbox_relays)
   if (!relays.length && site.contributor_relays) relays.push(...site.contributor_relays)
   if (!relays.length) relays.push('wss://relay.nostr.band')
+}
+
+async function getUserRelays(pubkey: string) {
+  if (!userRelaysCache.has(pubkey)) {
+    // @ts-ignore
+    const renderer = window.nostrSite.renderer
+    const relays = await renderer.fetchOutboxRelays([pubkey])
+    if (!relays.length) relays.push('wss://relay.nostr.band')
+    userRelaysCache.set(pubkey, relays)
+  }
+
+  return userRelaysCache.get(pubkey)
+}
+
+async function publish(event: any) {
+  // @ts-ignore
+  const renderer = window.nostrSite.renderer
+  return await renderer.publishEvent(event, { relays: await getUserRelays(event.pubkey) })
 }
 
 export async function publishReaction(emoji: string) {
@@ -111,5 +131,58 @@ export async function publishReaction(emoji: string) {
   if (id) event.tags.push(['e', id, relay])
   else event.tags.push(['a', addr, relay])
 
-  return await renderer.publishEvent(event)
+  return publish(event)
+}
+
+export async function publishNote(text: string) {
+  // @ts-ignore
+  const pubkey = await window.nostr.getPublicKey()
+
+  // template
+  const event = {
+    kind: 1,
+    content: text,
+    pubkey,
+    created_at: Math.floor(Date.now() / 1000),
+    tags: [],
+  }
+
+  return publish(event)
+}
+
+export async function publishFollow(followPubkey: string) {
+  // @ts-ignore
+  const pubkey = await window.nostr.getPublicKey()
+
+  // @ts-ignore
+  const renderer = window.nostrSite.renderer
+
+  const contactList = await renderer.fetchEvent(
+    {
+      kinds: [3],
+      authors: [pubkey],
+    },
+    { outboxRelays: true, timeoutMs: 10000 }
+  )
+
+  const site = renderer.getSite()
+  const relay =
+    site.contributor_relays && site.contributor_relays.length ? site.contributor_relays[0] : 'wss://relay.nostr.band/'
+
+  // template
+  const event = {
+    // defaults
+    tags: [],
+    content: '',
+    // copy
+    ...(contactList ? contactList.rawEvent() : {}),
+    // ensure
+    kind: 3,
+    pubkey,
+    created_at: Math.floor(Date.now() / 1000),
+  }
+  if (!event.tags.find((t: string[]) => t.length >= 2 && t[1] === followPubkey))
+    event.tags.push(['p', followPubkey, relay])
+
+  return publish(event)
 }

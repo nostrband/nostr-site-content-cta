@@ -1,7 +1,7 @@
 import { css, html, LitElement } from 'lit'
 import { customElement, property, query, state } from 'lit/decorators.js'
 import { TWStyles } from '../../modules/tw/twlit'
-import { getIdAddr, getRelays } from '../../utils/helpers'
+import { getIdAddr, getAuthorRelays } from '../../utils/helpers'
 
 interface Reaction {
   id: string
@@ -112,7 +112,7 @@ export class Reactions extends LitElement {
     if (id) filter['#e'] = [id]
     else filter['#a'] = [addr]
 
-    const events = await nostrSite.renderer.fetchEvents(filter, { relays: getRelays(), timeoutMs: 5000 })
+    const events = await nostrSite.renderer.fetchEvents(filter, { relays: getAuthorRelays(), timeoutMs: 5000 })
     console.log(Date.now(), 'content-cta reaction events since', this.since, [...events])
 
     let pubkey = ''
