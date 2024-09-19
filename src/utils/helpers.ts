@@ -157,12 +157,14 @@ export async function publishFollow(followPubkey: string) {
   // @ts-ignore
   const renderer = window.nostrSite.renderer
 
+  const KIND = 3;
+  const relays = await getUserRelays(pubkey)
   const contactList = await renderer.fetchEvent(
     {
-      kinds: [3],
+      kinds: [KIND],
       authors: [pubkey],
     },
-    { outboxRelays: true, timeoutMs: 10000 }
+    { relays, outboxRelays: true, timeoutMs: 10000 }
   )
 
   const site = renderer.getSite()
@@ -177,12 +179,56 @@ export async function publishFollow(followPubkey: string) {
     // copy
     ...(contactList ? contactList.rawEvent() : {}),
     // ensure
-    kind: 3,
+    kind: KIND,
     pubkey,
     created_at: Math.floor(Date.now() / 1000),
   }
   if (!event.tags.find((t: string[]) => t.length >= 2 && t[1] === followPubkey))
     event.tags.push(['p', followPubkey, relay])
+
+  return publish(event)
+}
+
+export async function publishBookmark() {
+  const [id, addr] = getIdAddr();
+  if (!id && !addr) return;
+
+  // @ts-ignore
+  const pubkey = await window.nostr.getPublicKey()
+
+  // @ts-ignore
+  const renderer = window.nostrSite.renderer
+
+  const KIND = 10003;
+  const relays = await getUserRelays(pubkey)
+  const list = await renderer.fetchEvent(
+    {
+      kinds: [KIND],
+      authors: [pubkey],
+    },
+    { relays, timeoutMs: 10000 }
+  )
+
+  const site = renderer.getSite()
+  const relay =
+    site.contributor_relays && site.contributor_relays.length ? site.contributor_relays[0] : 'wss://relay.nostr.band/'
+
+  // template
+  const event = {
+    // defaults
+    tags: [],
+    content: '',
+    // copy
+    ...(list ? list.rawEvent() : {}),
+    // ensure
+    kind: KIND,
+    pubkey,
+    created_at: Math.floor(Date.now() / 1000),
+  }
+  if (!event.tags.find((t: string[]) => t.length >= 2 && t[1] === (id || addr))) {
+    if (id) event.tags.push(['e', id, relay])
+    else event.tags.push(['a', addr, relay])
+  }
 
   return publish(event)
 }

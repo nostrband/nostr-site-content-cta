@@ -15,7 +15,7 @@ import {
 } from './utils/const'
 import { ItemAction } from './utils/types'
 import { Icons } from './assets/icons'
-import { prepareActionsList, publishFollow, publishNote, publishReaction } from './utils/helpers'
+import { prepareActionsList, publishBookmark, publishFollow, publishNote, publishReaction } from './utils/helpers'
 import './components'
 import { ModalApps, ModalLogin } from './components'
 import 'emoji-picker-element'
@@ -61,7 +61,7 @@ export class NostrContentCta extends LitElement {
     const mainAction = this.getAttribute(CTA_MAIN_ACTION_ATTR) || 'zap'
     this.mainAction = ACTIONS[mainAction]
 
-    const actions = this.getAttribute(CTA_LIST_ATTR) || ''
+    const actions = this.getAttribute(CTA_LIST_ATTR) || Object.keys(ACTIONS).join(',');
     this.actions = prepareActionsList(actions, mainAction)
 
     this.buttonColor = this.getAttribute(BUTTON_COLOR_ATTR) || DEFAULT_BUTTON_COLOR
@@ -84,6 +84,9 @@ export class NostrContentCta extends LitElement {
       })
       this.pluginEndpoint.subscribe('action-follow', () => {
         this._handleFollow()
+      })
+      this.pluginEndpoint.subscribe('action-bookmark', () => {
+        this._handleBookmark()
       })
       console.log('content-cta ready')
       this.ready = true
@@ -158,6 +161,11 @@ export class NostrContentCta extends LitElement {
     console.log("follow pubkey", pubkey);
 
     const nostrEvent = await publishFollow(pubkey);
+    this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+  }
+
+  private async _handleBookmark() {
+    const nostrEvent = await publishBookmark();
     this.pluginEndpoint?.dispatch('event-published', nostrEvent)
   }
 
