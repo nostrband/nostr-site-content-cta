@@ -1,5 +1,6 @@
 import { LitElement, css, html, nothing } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
+import { EmojiClickEvent } from 'emoji-picker-element/shared'
 import { TWStyles } from './modules/tw/twlit'
 import {
   ACTIONS,
@@ -14,7 +15,7 @@ import {
 } from './utils/const'
 import { ItemAction } from './utils/types'
 import { Icons } from './assets/icons'
-import { prepareActionsList } from './utils/helpers'
+import { prepareActionsList, publishReaction } from './utils/helpers'
 import './components'
 import { ModalApps, ModalLogin } from './components'
 import 'emoji-picker-element'
@@ -49,6 +50,7 @@ export class NostrContentCta extends LitElement {
   @state() showShareOptions = false
   @state() appsModalOpen = false
   @state() ready = false
+  @state() private updateTrigger: number = 0
 
   pluginEndpoint: any | undefined = undefined
 
@@ -75,6 +77,10 @@ export class NostrContentCta extends LitElement {
       })
       this.pluginEndpoint.subscribe('action-share', () => {
         this._handleShowShareOptions()
+      })
+      this.pluginEndpoint.subscribe('event-published', (e: any) => {
+        console.log("content-cta on event published", e);
+        this.updateTrigger = Date.now()
       })
       console.log('content-cta ready')
       this.ready = true
@@ -124,6 +130,15 @@ export class NostrContentCta extends LitElement {
     this.actionsModalOpen = false
   }
 
+  private async _publishReaction(event: EmojiClickEvent) {
+    if (event.detail.unicode) {
+      const nostrEvent = await publishReaction(event.detail.unicode!)
+
+      // a generalized way to notify nostr-site about the new relevant event
+      this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+    }
+  }
+
   renderActionsModal() {
     if (!this.actionsModalOpen || this.appsModalOpen || this.showEmojiPicker || this.showShareOptions) return nothing
 
@@ -149,8 +164,18 @@ export class NostrContentCta extends LitElement {
   render() {
     return html`
       <div class="w-full flex flex-col gap-[8px]">
-        <np-content-cta-zaps .ready=${this.ready} .npub=${this.npub} .accent=${this.buttonColor}></np-content-cta-zaps>
-        <np-content-cta-reactions .ready=${this.ready} .npub=${this.npub} .accent=${this.buttonColor}></np-content-cta-reactions>
+        <np-content-cta-zaps
+          .ready=${this.ready}
+          .npub=${this.npub}
+          .accent=${this.buttonColor}
+          .updateTrigger=${this.updateTrigger}
+        ></np-content-cta-zaps>
+        <np-content-cta-reactions
+          .ready=${this.ready}
+          .npub=${this.npub}
+          .accent=${this.buttonColor}
+          .updateTrigger=${this.updateTrigger}
+        ></np-content-cta-reactions>
         <div class="w-full flex align-middle gap-[12px]">
           <button
             class=" w-full border-2 rounded-[5px] p-[6px] hover:opacity-95 active:opacity-85 transition-opacity flex justify-center gap-[8px] items-center"
@@ -174,7 +199,11 @@ export class NostrContentCta extends LitElement {
       <np-content-cta-modal-apps @close-modal=${this._handleCloseModal} .open=${this.appsModalOpen}>
       </np-content-cta-modal-apps>
 
-      <np-content-cta-modal-emoji @close-modal=${this._handleCloseModal} .open=${this.showEmojiPicker}>
+      <np-content-cta-modal-emoji
+        @close-modal=${this._handleCloseModal}
+        .open=${this.showEmojiPicker}
+        .publish=${this._publishReaction.bind(this)}
+      >
       </np-content-cta-modal-emoji>
 
       <np-content-cta-modal-share-apps @close-modal=${this._handleCloseModal} .open=${this.showShareOptions}>

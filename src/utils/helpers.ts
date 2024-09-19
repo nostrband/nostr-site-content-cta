@@ -111,5 +111,5 @@ export async function publishReaction(emoji: string) {
   if (id) event.tags.push(['e', id, relay])
   else event.tags.push(['a', addr, relay])
 
-  await renderer.publishEvent(event)
+  return await renderer.publishEvent(event)
 }

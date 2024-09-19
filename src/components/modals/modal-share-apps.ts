@@ -5,28 +5,43 @@ import { Icons } from '../../assets/icons'
 
 const APPS = [
   {
-    id: 1,
+    id: 'nostr',
     name: 'Nostr',
     icon: Icons.Nostr,
   },
   {
-    id: 2,
+    id: 'twitter',
     name: 'Twitter',
     icon: Icons.TwitterX,
   },
   {
-    id: 3,
+    id: 'facebook',
     name: 'Facebook',
     icon: Icons.Facebook,
   },
   {
-    id: 4,
+    id: 'reddit',
     name: 'Reddit',
     icon: Icons.Reddit,
   },
   {
-    id: 5,
+    id: 'pinterest',
     name: 'Pinterest',
+    icon: Icons.Pinterest,
+  },
+  {
+    id: 'telegram',
+    name: 'Telegram',
+    icon: Icons.Pinterest,
+  },
+  {
+    id: 'linkedin',
+    name: 'Linkedin',
+    icon: Icons.Pinterest,
+  },
+  {
+    id: 'email',
+    name: 'Email',
     icon: Icons.Pinterest,
   },
 ]
@@ -50,6 +65,43 @@ export class ModalShareApps extends LitElement {
   }
   private _handleAppClick(app: any) {
     console.log(app)
+
+    this._handleClose()
+
+    // @ts-ignore
+    const site = window.nostrSite.renderer.getSite()
+    const title = document.querySelector('title')
+    const img = document.querySelector('meta[property="og:image"]')?.getAttribute('content') || ''
+    const text = encodeURIComponent(title?.innerText || site.title)
+    const ref = encodeURIComponent(window.location.href)
+    let url = ''
+    switch (app.id) {
+      case 'twitter':
+        // FIXME also get hashtags from post
+        url = `https://twitter.com/intent/tweet?original_referer=${ref}&text=${text}&url=${ref}`
+        break
+      case 'facebook':
+        url = `https://www.facebook.com/dialog/share?href=${ref}`
+        break
+      case 'reddit':
+        url = `https://www.reddit.com/submit?title=${ref}`
+        break
+      case 'pinterest':
+        url = `https://pinterest.com/pin/create/button/?url=${ref}&media=${img}`
+        break
+      case 'telegram':
+        url = `https://t.me/share/url?url=${ref}&text=${text}`
+        break
+      case 'linkedin':
+        url = `https://www.linkedin.com/shareArticle?mini=true&url=${ref}`
+        break
+      case 'email':
+        url = `mailto:?subject=${text}&body=${ref}`
+        break
+    }
+
+    console.log('url', url, 'img', img)
+    if (url) window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   render() {

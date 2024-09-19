@@ -18,18 +18,16 @@ export class ModalEmoji extends LitElement {
   ]
 
   @property() open = false
+  @property() publish?: (e: EmojiClickEvent) => Promise<void>
 
   private _handleClose() {
     this.dispatchEvent(new Event(`close-modal`))
   }
 
   private async _handleEmojiClick(event: EmojiClickEvent) {
-    console.log(event.detail)
-    this._handleClose();
-    if (event.detail.unicode) {
-      await publishReaction(event.detail.unicode)
-      this.dispatchEvent(new Event(`reaction-published`))
-    }
+    // console.log(event.detail)
+    this._handleClose()
+    if (this.publish) this.publish(event);
   }
 
   render() {
@@ -44,12 +42,6 @@ export class ModalEmoji extends LitElement {
       <np-content-cta-modal @close-modal=${this._handleClose} .title=${'Choose an emoji'}>
         <div class="flex flex-col gap-[8px]">
           <emoji-picker class="light w-full" @emoji-picker=${this._handleEmojiClick} ${ref(refCallback)}></emoji-picker>
-          <button
-            class="w-full p-[8px] hover:bg-slate-50 rounded-[4px] transition-colors active:bg-slate-100 border-2"
-            @click=${this._handleClose}
-          >
-            Cancel
-          </button>
         </div>
       </np-content-cta-modal>
     `

@@ -1,5 +1,5 @@
 import { css, html, LitElement } from 'lit'
-import { customElement, property, query } from 'lit/decorators.js'
+import { customElement, property, query, state } from 'lit/decorators.js'
 import { TWStyles } from '../../modules/tw/twlit'
 import { Icons } from '../../assets/icons'
 import { getIdAddr, getRelays } from '../../utils/helpers'
@@ -15,6 +15,7 @@ interface Zap {
     name: string
   }
   comment: string
+  accent?: boolean
 }
 
 const ZAPS_MOCK_DATA: Zap[] = [
@@ -145,8 +146,12 @@ export class Zaps extends LitElement {
   @property() ready = false
   @property() npub = ''
   @property() accent = ''
+  @property() updateTrigger = 0
   @property() zaps: Zap[] = []
   @query('#zaps-scroll-container') scrollContainer?: HTMLDivElement | null
+
+  @state() since = 0
+  @state() loading = false
 
   private prepareZapsAmount(amount: number) {
     const formatter = Intl.NumberFormat('en', { notation: 'compact' })
@@ -173,6 +178,7 @@ export class Zaps extends LitElement {
     const filter: any = {
       kinds: [9735],
       limit: 500,
+      since: this.since + 1,
     }
     if (id) filter['#e'] = [id]
     else filter['#a'] = [addr]
@@ -181,9 +187,13 @@ export class Zaps extends LitElement {
     console.log(Date.now(), 'content-cta zaps', events)
 
     // get zap authors and amounts
-    const pubkeys = new Set<string>()
-    const zaps: Zap[] = []
+    const pubkeys = new Set<string>(this.zaps.map((z) => z.pubkey))
+    const zaps: Zap[] = [...this.zaps]
     for (const e of [...events]) {
+
+      // cursor
+      this.since = Math.max(this.since, e.created_at)
+
       let pubkey = ''
       let amount = 0
       let comment = ''
@@ -229,14 +239,31 @@ export class Zaps extends LitElement {
       }
     }
 
-    zaps.sort((a, b) => b.amount - a.amount)
+    let pubkey = ''
+    if (this.npub) pubkey = nostrSite.nostrTools.nip19.decode(this.npub).data
+    console.log('zaps user pubkey', this.npub, pubkey)
+
+    zaps.forEach((z) => (z.accent = z.pubkey === pubkey))
+
+    zaps.sort((a, b) => {
+      if (a.accent === b.accent) return b.amount - a.amount
+      return a.accent ? -1 : 1
+    })
 
     this.zaps = zaps
   }
 
-  updated(changedProperties: { has: (args: string) => any }) {
-    if (changedProperties.has('ready') && this.ready) {
-      this.loadData()
+  async updated(changedProperties: { has: (args: string) => any }) {
+    if (changedProperties.has('ready') || changedProperties.has('npub') || changedProperties.has('updateTrigger')) {
+      if (this.ready) {
+        if (this.loading) return
+
+        this.loading = true
+        try {
+          await this.loadData()
+        } catch {}
+        this.loading = false
+      }
     }
   }
 
@@ -274,6 +301,7 @@ export class Zaps extends LitElement {
       ${this.zaps.map((zap) => {
         return html`<div
           class="flex items-center gap-[8px] py-[4px] ps-[8px] pe-[8px] rounded-[5px] border-[1px] border-gray-300 hover:bg-gray-100 cursor-pointer"
+          style="${zap.accent ? `border: 1px solid ${this.accent}` : ''}"
         >
           ${Icons.Zap}
           <span class="text-[14px] font-medium text-nowrap">${this.prepareZapsAmount(zap.amount)}</span>

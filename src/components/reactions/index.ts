@@ -1,5 +1,5 @@
 import { css, html, LitElement } from 'lit'
-import { customElement, property, query } from 'lit/decorators.js'
+import { customElement, property, query, state } from 'lit/decorators.js'
 import { TWStyles } from '../../modules/tw/twlit'
 import { getIdAddr, getRelays } from '../../utils/helpers'
 
@@ -80,8 +80,12 @@ export class Reactions extends LitElement {
   @property() ready = false
   @property() npub = ''
   @property() accent = ''
+  @property() updateTrigger = 0
   @property() reactions: Reaction[] = []
   @query('#reactions-scroll-container') scrollContainer?: HTMLDivElement | null
+
+  @state() since = 0;
+  @state() loading = false;
 
   async loadData() {
     // @ts-ignore
@@ -103,19 +107,23 @@ export class Reactions extends LitElement {
     const filter: any = {
       kinds: [7],
       limit: 500,
+      since: this.since + 1
     }
     if (id) filter['#e'] = [id]
     else filter['#a'] = [addr]
 
     const events = await nostrSite.renderer.fetchEvents(filter, { relays: getRelays(), timeoutMs: 5000 })
-    console.log(Date.now(), 'content-cta reaction events', [...events])
+    console.log(Date.now(), 'content-cta reaction events since', this.since, [...events])
 
     let pubkey = ''
     if (this.npub) pubkey = nostrSite.nostrTools.nip19.decode(this.npub).data
     console.log('reactions user pubkey', this.npub, pubkey)
 
-    const reactions: Reaction[] = []
+    const reactions: Reaction[] = [...this.reactions]
     for (const e of [...events]) {
+
+      this.since = Math.max(this.since, e.created_at);
+
       const [shortcode, url] = nostrSite.utils.tvs(e, 'emoji') || ['', '']
       // console.log('shortcode, url', shortcode, url, e.id)
 
@@ -147,7 +155,7 @@ export class Reactions extends LitElement {
     }
     console.log('content-cta reactions', reactions)
 
-    this.reactions = reactions
+    this.reactions = reactions;
 
     this.prepareData()
   }
@@ -170,13 +178,17 @@ export class Reactions extends LitElement {
     })
   }
 
-  updated(changedProperties: { has: (args: string) => any }) {
-    if (changedProperties.has('ready')) {
-      if (this.ready) this.loadData()
-    }
+  async updated(changedProperties: { has: (args: string) => any }) {
+    if (changedProperties.has('ready') || changedProperties.has('npub') || changedProperties.has('updateTrigger')) {
+      if (this.ready) {
+        if (this.loading) return;
 
-    if (changedProperties.has('npub')) {
-      this.prepareData()
+        this.loading = true;
+        try {
+          await this.loadData()
+        } catch {}
+        this.loading = false;
+      }
     }
   }
 
@@ -208,7 +220,7 @@ export class Reactions extends LitElement {
       ${this.reactions.map((reaction) => {
         return html`<button
           title="${reaction.id}${reaction.accent ? ' - your reaction' : ''}"
-          class="flex justify-center items-center gap-[8px] px-[12px] border-[1px] border-gray-300 hover:bg-gray-100 h-[32px] active:bg-gray-200 rounded-[5px] min-w-[60px] text-[14px] ${reaction.accent}"
+          class="flex justify-center items-center gap-[8px] px-[12px] border-[1px] border-gray-300 hover:bg-gray-100 h-[32px] active:bg-gray-200 rounded-[5px] min-w-[60px] text-[14px]"
           style="${reaction.accent ? `border: 1px solid ${this.accent}` : ''}"
         >
           <span class="text-nowrap">${reaction.icon}</span>
