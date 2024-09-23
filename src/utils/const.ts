@@ -1,5 +1,5 @@
 import { Icons } from '../assets/icons'
-import { ItemAction } from './types'
+import { IShareApp, ItemAction } from './types'
 
 const ACTIONS: Record<string, ItemAction> = {
   zap: {
@@ -15,13 +15,8 @@ const ACTIONS: Record<string, ItemAction> = {
   bookmark: {
     value: 'bookmark',
     label: 'Bookmark',
-    icon: Icons.Like,
+    icon: Icons.Bookmark,
   },
-  // repost: {
-  //   value: 'repost',
-  //   label: 'Repost',
-  //   icon: Icons.Repost,
-  // },
   follow: {
     value: 'follow',
     label: 'Follow',
@@ -38,6 +33,49 @@ const ACTIONS: Record<string, ItemAction> = {
     icon: Icons.Share,
   },
 }
+
+const APPS: IShareApp[] = [
+  {
+    id: 'nostr',
+    name: 'Nostr',
+    icon: Icons.Nostr,
+  },
+  {
+    id: 'twitter',
+    name: 'Twitter',
+    icon: Icons.TwitterX,
+  },
+  {
+    id: 'facebook',
+    name: 'Facebook',
+    icon: Icons.Facebook,
+  },
+  {
+    id: 'reddit',
+    name: 'Reddit',
+    icon: Icons.Reddit,
+  },
+  {
+    id: 'pinterest',
+    name: 'Pinterest',
+    icon: Icons.Pinterest,
+  },
+  {
+    id: 'telegram',
+    name: 'Telegram',
+    icon: Icons.Telegram,
+  },
+  {
+    id: 'linkedin',
+    name: 'Linkedin',
+    icon: Icons.Linkedin,
+  },
+  {
+    id: 'email',
+    name: 'Email',
+    icon: Icons.Mail,
+  },
+]
 
 const CTA_LIST_ATTR = 'data-cta-list'
 const CTA_MAIN_ACTION_ATTR = 'data-cta-main'
@@ -58,5 +96,6 @@ export {
   DEFAULT_BUTTON_TEXT_COLOR,
   DEFAULT_MAIN_ACTION,
   ACTIONS,
-  NPUB_ATTR
+  NPUB_ATTR,
+  APPS,
 }

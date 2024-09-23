@@ -1,56 +1,8 @@
 import { css, html, LitElement, nothing, TemplateResult } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
 import { TWStyles } from '../../modules/tw/twlit'
-import { Icons } from '../../assets/icons'
-
-type IShareApp = {
-  id: string
-  name: string
-  icon: TemplateResult
-}
-
-const APPS: IShareApp[] = [
-  {
-    id: 'nostr',
-    name: 'Nostr',
-    icon: Icons.Nostr,
-  },
-  {
-    id: 'twitter',
-    name: 'Twitter',
-    icon: Icons.TwitterX,
-  },
-  {
-    id: 'facebook',
-    name: 'Facebook',
-    icon: Icons.Facebook,
-  },
-  {
-    id: 'reddit',
-    name: 'Reddit',
-    icon: Icons.Reddit,
-  },
-  {
-    id: 'pinterest',
-    name: 'Pinterest',
-    icon: Icons.Pinterest,
-  },
-  {
-    id: 'telegram',
-    name: 'Telegram',
-    icon: Icons.Pinterest,
-  },
-  {
-    id: 'linkedin',
-    name: 'Linkedin',
-    icon: Icons.Pinterest,
-  },
-  {
-    id: 'email',
-    name: 'Email',
-    icon: Icons.Pinterest,
-  },
-]
+import { APPS } from '../../utils/const'
+import { IShareApp, NostrSelectionDetails } from '../../utils/types'
 
 @customElement('np-content-cta-modal-share-apps')
 export class ModalShareApps extends LitElement {
@@ -66,11 +18,30 @@ export class ModalShareApps extends LitElement {
   @property() open = false
   @property() ready = false
   @property() publishNote?: (text: string) => Promise<void>
+  @property() openModal: () => void = () => undefined
   @property() accent = ''
 
   @state() apps: any[] = APPS
   @state() nostrText: string = ''
+  @state() highlightText: string = ''
   @state() nostrShareModalOpen = false
+
+  connectedCallback(): void {
+    super.connectedCallback()
+    document.addEventListener('selection-nostr', this._handleSelectionChange.bind(this) as EventListener)
+  }
+
+  disconnectedCallback(): void {
+    super.disconnectedCallback()
+    document.removeEventListener('selection-nostr', this._handleSelectionChange.bind(this) as EventListener)
+  }
+
+  private _handleSelectionChange(e: CustomEvent<NostrSelectionDetails>) {
+    this.openModal()
+    this._handleOpenNostrShareModal()
+    if (e.detail.type === 'quote') this.nostrText = e.detail.text
+    if (e.detail.type === 'highlight') this.highlightText = e.detail.text
+  }
 
   private _handleOpenNostrShareModal() {
     this.nostrShareModalOpen = true
@@ -130,10 +101,9 @@ export class ModalShareApps extends LitElement {
   }
 
   private async _initNostrText() {
-
     // @ts-ignore
     const nostrSite: any = window.nostrSite
-    if (!nostrSite) return;
+    if (!nostrSite) return
 
     // wait until renderer starts
     await nostrSite.tabReady
@@ -156,7 +126,7 @@ export class ModalShareApps extends LitElement {
 
   updated(changedProperties: { has: (args: string) => any }) {
     if (changedProperties.has('ready') && this.ready) {
-      this._initNostrText();
+      this._initNostrText()
     }
   }
 
@@ -169,6 +139,7 @@ export class ModalShareApps extends LitElement {
           .publish=${this.publishNote}
           .text=${this.nostrText}
           .accent=${this.accent}
+          .highlightText=${this.highlightText}
         >
         </np-content-cta-modal-nostr-share>
       `

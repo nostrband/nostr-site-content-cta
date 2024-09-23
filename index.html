@@ -6,17 +6,65 @@
     <title>Nostr Site Content CTA</title>
     <script src="./dist/index.js"></script>
     <style>
-      html {
+      /* html {
         font-size: 10px;
-      }
+      } */
     </style>
   </head>
   <body>
     <np-content-cta
-      data-cta-list="zap,like,repost,share,follow,open-with"
+      data-cta-list="bookmark,zap,like,repost,share,follow,open-with"
       data-cta-main="like"
       data-button-color="#ff3ed9"
     ></np-content-cta>
+    <np-content id="note1lwsfpl5zp4x2gtpdszzqqf5tu6pcjvm7fjk92tj642rkay56p6hstl9mxd"
+      ><p>
+        <a href="/tag/amethyst/">#Amethyst</a> v0.91.0: Edge to edge feeds<br /><br />Hidden words now filter by the
+        user's fields as well. You can hide by name, profile picture, banner, lightning and nip-05 addresses and about
+        me fields.<br /><br />Features: <br />- Finishes Edge to Edge transition for Android 15<br />- Adds compression
+        settings to the media uploading screen by
+        <a href="https://njump.me/npub1e2yuky03caw4ke3zy68lg0fz3r4gkt94hx4fjmlelacyljgyk79svn3eef"
+          >⚡ Dee Kay ⚡🇸🇪🇬🇧🇨🇿🇧🇷🇦🇹</a
+        ><br />- Adds sliding animations in all inner screens<br />- Adds copy stack to clipboard for error messages
+        that have an exception<br />- Enables the use of hidden words for all visible properties of the user<br /><br />Bug
+        Fixes<br />- Fixes blank alt field when no alt text is provided on NIP-96<br />- Fixes missing Private
+        Home/Outbox relay list after loading from backup<br />- Fixes keyboard padding issues when using physical
+        keyboards on the message screens.<br />- Fixes token sanitization when using gcompatup with unified push by
+        <a href="https://njump.me/npub1w4uswmv6lu9yel005l3qgheysmr7tk9uvwluddznju3nuxalevvs2d0jr5">greenart7c3</a
+        ><br />- Fixes moving top buttons on the full screen dialog for images and videos.<br />- Fixes weird padding of
+        the key backup screen<br />- Fixes using npub instead of pubkey in hex when communicating with Amber<br />-
+        Fixes blinking on crossfades when the system's light/dark theme is different than the app's theme<br />- Fixes a
+        mix of languages after changing language in Settings<br />- Fixes disables saving m3u8 files locally (streaming
+        can't be saved)<br />- Fixes Community tab not loading up with Global filter<br />- Fixes size of default banner
+        when the profile is not loaded yet.<br /><br />Code Quality Improvements:<br />- Inverts Layouts to place
+        Navigation on top of Scaffold and allow custom scaffolds per route<br />- Refactors navigation to improve
+        clarity<br />- Restructures screens into their own packages<br />- Restructures navigation functions as a single
+        object<br />- Refactors all TopBars to use default material 3 ones<br />- Simplifies the "and 2 more"
+        translations for the relay recommendation user lists<br />- Removes unnecessary observers from the transition in
+        the bottom nav layouts.<br />- Normalizes cache directories in the Application class<br />- Fixes text field
+        recompositions because of new keyboard actions<br />- Moves the profile zap to threads<br />- Updates to AGP
+        8.6.0<br />- Updates zoomable and kotlin serialization<br /><br />Updated translations: <br />- Czech, German,
+        Swedish and Portuguese by
+        <a href="https://njump.me/npub1e2yuky03caw4ke3zy68lg0fz3r4gkt94hx4fjmlelacyljgyk79svn3eef"
+          >⚡ Dee Kay ⚡🇸🇪🇬🇧🇨🇿🇧🇷🇦🇹</a
+        ><br />- Thai by
+        <a href="https://njump.me/npub1vm0kq43djwdd4psjgdjgn9z6fm836c35dv7eg7x74z3n3ueq83jqhkxp8e">123🦈ปลาฉลามขึ้นบก</a
+        ><br />- Dutch by
+        <a href="https://njump.me/npub1w4la29u3zv09r6crx5u8yxax0ffxgekzdm2egzjkjckef7xc83fs0ftxcd">Bartus</a><br />-
+        Hungarian by
+        <a href="https://njump.me/npub1ww8kjxz2akn82qptdpl7glywnchhkx3x04hez3d3rye397turrhssenvtp">Zoltan ⚡️</a><br />-
+        Bengali by <a href="https://njump.me/npub13qtw3yu0uc9r4yj5x0rhgy8nj5q0uyeq0pavkgt9ly69uuzxgkfqwvx23t">Cats😺</a
+        ><br />- Polish by
+        <a href="https://njump.me/npub16gjyljum0ksrrm28zzvejydgxwfm7xse98zwc4hlgq8epxeuggushqwyrm">Polak</a><br />-
+        Hungarian by
+        <a href="https://njump.me/npub1ww8kjxz2akn82qptdpl7glywnchhkx3x04hez3d3rye397turrhssenvtp">Zoltan ⚡️</a><br />-
+        Chinese by <a href="https://njump.me/npub1gd8e0xfkylc7v8c5a6hkpj4gelwwcy99jt90lqjseqjj2t253s2s6ch58h">CXPLAY</a
+        ><br /><br />Download via <a href="http://amethyst.social">Obtainium</a> or
+        <a href="https://zap.store/">Zap.Store</a>
+      </p>
+    </np-content>
+
+    <div>Another Text</div>
 
     <br />
 

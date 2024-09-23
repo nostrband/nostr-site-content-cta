@@ -13,7 +13,7 @@ import {
   DEFAULT_MAIN_ACTION,
   NPUB_ATTR,
 } from './utils/const'
-import { ItemAction } from './utils/types'
+import { CompletionState, ItemAction, LoadingState } from './utils/types'
 import { Icons } from './assets/icons'
 import { prepareActionsList, publishBookmark, publishFollow, publishNote, publishReaction } from './utils/helpers'
 import './components'
@@ -51,6 +51,8 @@ export class NostrContentCta extends LitElement {
   @state() appsModalOpen = false
   @state() ready = false
   @state() private updateTrigger: number = 0
+  @state() private loading: LoadingState = ''
+  @state() private completion: CompletionState = ''
 
   pluginEndpoint: any | undefined = undefined
 
@@ -61,7 +63,7 @@ export class NostrContentCta extends LitElement {
     const mainAction = this.getAttribute(CTA_MAIN_ACTION_ATTR) || 'zap'
     this.mainAction = ACTIONS[mainAction]
 
-    const actions = this.getAttribute(CTA_LIST_ATTR) || Object.keys(ACTIONS).join(',');
+    const actions = this.getAttribute(CTA_LIST_ATTR) || Object.keys(ACTIONS).join(',')
     this.actions = prepareActionsList(actions, mainAction)
 
     this.buttonColor = this.getAttribute(BUTTON_COLOR_ATTR) || DEFAULT_BUTTON_COLOR
@@ -122,51 +124,90 @@ export class NostrContentCta extends LitElement {
     this.showShareOptions = false
   }
 
+  private _handleShowCompletionModal(completion: CompletionState) {
+    this.completion = completion
+  }
+
+  private _handleCloseCompletionModal() {
+    this.completion = ''
+  }
+
   private _handleCloseModal() {
     this._handleCloseActionsModal()
     this._handleCloseAppsModal()
     this._handleCloseEmojiPicker()
     this._handleCloseShareOptions()
+    this._handleCloseCompletionModal()
   }
 
   private _handleButtonClick(type: string) {
     this.pluginEndpoint?.dispatch(`action-${type}`)
-
     // close the actions modal
     this.actionsModalOpen = false
   }
 
   private async _publishReaction(event: EmojiClickEvent) {
-    if (event.detail.unicode) {
-      const nostrEvent = await publishReaction(event.detail.unicode!)
+    if (!event.detail.unicode) return
 
+    try {
+      this.loading = 'reaction'
+      const nostrEvent = await publishReaction(event.detail.unicode!)
       // a generalized way to notify nostr-site about the new relevant event
       this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+      this.loading = ''
+      this._handleShowCompletionModal('reaction')
+    } catch {
+      this.loading = ''
     }
   }
 
   private async _publishNote(text: string) {
-    const nostrEvent = await publishNote(text)
-    this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+    try {
+      this.loading = 'note'
+      const nostrEvent = await publishNote(text)
+      this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+      this.loading = ''
+      this._handleShowCompletionModal('note')
+    } catch {
+      this.loading = ''
+    }
   }
 
   private async _handleFollow() {
-    const npub = document.querySelector('meta[name="nostr:author"]')?.getAttribute("content");
-    console.log("follow npub", npub);
-    if (!npub || !npub.startsWith("npub")) return;
+    const npub = document.querySelector('meta[name="nostr:author"]')?.getAttribute('content')
+    console.log('follow npub', npub)
+    if (!npub || !npub.startsWith('npub')) return
+    try {
+      this.loading = 'follow'
+      // @ts-ignore
+      const nostrSite = window.nostrSite
+      const pubkey = nostrSite.nostrTools.nip19.decode(npub).data
+      console.log('follow pubkey', pubkey)
 
-    // @ts-ignore
-    const nostrSite = window.nostrSite;
-    const pubkey = nostrSite.nostrTools.nip19.decode(npub).data;
-    console.log("follow pubkey", pubkey);
-
-    const nostrEvent = await publishFollow(pubkey);
-    this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+      const nostrEvent = await publishFollow(pubkey)
+      this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+      this.loading = ''
+      this._handleShowCompletionModal('follow')
+    } catch {
+      this.loading = ''
+    }
   }
 
   private async _handleBookmark() {
-    const nostrEvent = await publishBookmark();
-    this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+    try {
+      this.loading = 'bookmark'
+      const nostrEvent = await publishBookmark()
+      this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+      this.loading = ''
+      this._handleShowCompletionModal('bookmark')
+    } catch {
+      this.loading = ''
+    }
+  }
+
+  private _handleToggleShareOptions() {
+    if (this.showShareOptions) this.showShareOptions = false
+    else this.showShareOptions = true
   }
 
   renderActionsModal() {
@@ -182,8 +223,13 @@ export class NostrContentCta extends LitElement {
               class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-2 flex justify-center gap-[8px] items-center"
               ${action.value === this.mainAction.value ? `style="background-color: ${this.buttonColor}"` : ``}
             >
-              <div class="w-[24px] h-[24px]">${action.icon}</div>
-              ${action.label}
+              <div class="w-[80%] flex justify-end">
+                <div class="w-[24px] h-[24px]">${action.icon}</div>
+              </div>
+
+              <div class="w-full flex justify-start">
+                <div>${action.label}</div>
+              </div>
             </button>`
           })}
         </div>
@@ -200,12 +246,14 @@ export class NostrContentCta extends LitElement {
           .accent=${this.buttonColor}
           .updateTrigger=${this.updateTrigger}
         ></np-content-cta-zaps>
+
         <np-content-cta-reactions
           .ready=${this.ready}
           .npub=${this.npub}
           .accent=${this.buttonColor}
           .updateTrigger=${this.updateTrigger}
         ></np-content-cta-reactions>
+
         <div class="w-full flex align-middle gap-[12px]">
           <button
             class=" w-full border-2 rounded-[5px] p-[6px] hover:opacity-95 active:opacity-85 transition-opacity flex justify-center gap-[8px] items-center"
@@ -242,8 +290,25 @@ export class NostrContentCta extends LitElement {
         .publishNote=${this._publishNote.bind(this)}
         .accent=${this.buttonColor}
         .ready=${this.ready}
+        .openModal=${this._handleShowShareOptions.bind(this)}
       >
       </np-content-cta-modal-share-apps>
+
+      <np-content-cta-modal-loading .open=${!!this.loading}></np-content-cta-modal-loading>
+
+      <np-content-cta-modal-completion
+        @close-modal=${this._handleCloseCompletionModal}
+        .open=${!!this.completion}
+        .title=${'Username'}
+        .text=${html`<div>
+          Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque, esse harum ipsum error sit voluptatum, est
+          similique voluptates cum aspernatur accusantium, provident natus maxime temporibus ducimus incidunt tempora
+          libero. Fuga?
+        </div>`}
+        .buttonText=${'Continue'}
+      ></np-content-cta-modal-completion>
+
+      <np-content-cta-selection></np-content-cta-selection>
     `
   }
 }

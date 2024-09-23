@@ -24,9 +24,8 @@ export class ModalEmoji extends LitElement {
   }
 
   private async _handleEmojiClick(event: EmojiClickEvent) {
-    // console.log(event.detail)
     this._handleClose()
-    if (this.publish) this.publish(event);
+    if (this.publish) this.publish(event)
   }
 
   render() {

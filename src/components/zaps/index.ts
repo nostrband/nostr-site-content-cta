@@ -190,7 +190,6 @@ export class Zaps extends LitElement {
     const pubkeys = new Set<string>(this.zaps.map((z) => z.pubkey))
     const zaps: Zap[] = [...this.zaps]
     for (const e of [...events]) {
-
       // cursor
       this.since = Math.max(this.since, e.created_at)
 
@@ -290,7 +289,7 @@ export class Zaps extends LitElement {
     }
   }
 
-  getProfilePicture(picture: string, name: string) {
+  private _getProfilePicture(picture: string, name: string) {
     const username = name || 'User'
     if (!picture) return Icons.Profile
     return html`<img alt="${username}" src="${picture}" class="rounded-full h-[24px] w-[24px]" />`
@@ -307,7 +306,7 @@ export class Zaps extends LitElement {
           <span class="text-[14px] font-medium text-nowrap">${this.prepareZapsAmount(zap.amount)}</span>
 
           <span title="${zap.profile.name}" class="h-[24px] w-[24px] inline-block">
-            ${this.getProfilePicture(zap.profile.picture, zap.profile.name)}
+            ${this._getProfilePicture(zap.profile.picture, zap.profile.name)}
           </span>
           <p class="text-[14px] font-medium text-nowrap max-w-[200px] overflow-hidden text-ellipsis">${zap.comment}</p>
         </div>`
