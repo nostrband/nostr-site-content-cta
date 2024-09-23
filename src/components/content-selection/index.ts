@@ -1,6 +1,7 @@
 import { css, html, LitElement } from 'lit'
 import { customElement, query, state } from 'lit/decorators.js'
 import { TWStyles } from '../../modules/tw/twlit'
+import { Icons } from '../../assets/icons'
 
 @customElement('np-content-cta-selection')
 export class ContentSelection extends LitElement {
@@ -15,7 +16,6 @@ export class ContentSelection extends LitElement {
 
   @state() selectedText = ''
   @state() debounceTimer?: number
-
   @query('#np-content-selection-popup') popup!: HTMLDivElement
 
   connectedCallback() {
@@ -119,21 +119,21 @@ export class ContentSelection extends LitElement {
   render() {
     return html`
       <div
-        class="my-[2px] ml-[4px] mr-[8px] p-[12px] absolute hidden bg-white border border-gray-300  shadow-lg  rounded-[10px] flex-col gap-[8px]"
+        class="my-[2px] ml-[4px] mr-[8px] p-[12px] absolute hidden bg-white shadow-md  rounded-[10px] flex-col gap-[8px]"
         id="np-content-selection-popup"
       >
         <button
-          class="px-[12px] py-[6px] text-[14px] font-medium text-gray-800 bg-gray-100 rounded hover:bg-gray-200"
+          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-center gap-[8px] items-center text-[14px]"
           @click="${this._handleQuoteText}"
         >
-          Quote
+          ${Icons.Quotes} Quote
         </button>
 
         <button
-          class="px-[12px] py-[6px] text-[14px] font-medium text-gray-800 bg-gray-100 rounded-[8px] hover:bg-gray-200"
+          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-center gap-[8px] items-center text-[14px]"
           @click="${this._handleHighlightText}"
         >
-          Highlight
+          ${Icons.Highlight} Highlight
         </button>
       </div>
     `
