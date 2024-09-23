@@ -258,11 +258,6 @@ export class NostrContentCta extends LitElement {
     }
   }
 
-  private _handleToggleShareOptions() {
-    if (this.showShareOptions) this.showShareOptions = false
-    else this.showShareOptions = true
-  }
-
   renderActionsModal() {
     if (!this.actionsModalOpen || this.appsModalOpen || this.showEmojiPicker || this.showShareOptions) return nothing
 
