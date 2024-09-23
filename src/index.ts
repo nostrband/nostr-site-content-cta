@@ -15,7 +15,16 @@ import {
 } from './utils/const'
 import { CompletionState, ItemAction, LoadingState } from './utils/types'
 import { Icons } from './assets/icons'
-import { prepareActionsList, publishBookmark, publishFollow, publishNote, publishReaction } from './utils/helpers'
+import {
+  getAuthorPubkey,
+  getCompletionForEvent,
+  prepareActionsList,
+  publishBookmark,
+  publishFollow,
+  publishHighlight,
+  publishNote,
+  publishReaction,
+} from './utils/helpers'
 import './components'
 import { ModalApps, ModalLogin } from './components'
 import 'emoji-picker-element'
@@ -53,6 +62,8 @@ export class NostrContentCta extends LitElement {
   @state() private updateTrigger: number = 0
   @state() private loading: LoadingState = ''
   @state() private completion: CompletionState = ''
+  @state() private authorName: string = ''
+  @state() private authorAvatar: string = ''
 
   pluginEndpoint: any | undefined = undefined
 
@@ -83,6 +94,8 @@ export class NostrContentCta extends LitElement {
       this.pluginEndpoint.subscribe('event-published', (e: any) => {
         console.log('content-cta on event published', e)
         this.updateTrigger = Date.now()
+        const completion = getCompletionForEvent(e)
+        if (completion) this._handleShowCompletionModal(completion)
       })
       this.pluginEndpoint.subscribe('action-follow', () => {
         this._handleFollow()
@@ -90,8 +103,20 @@ export class NostrContentCta extends LitElement {
       this.pluginEndpoint.subscribe('action-bookmark', () => {
         this._handleBookmark()
       })
+
       console.log('content-cta ready')
       this.ready = true
+
+      // @ts-ignore
+      const nostrSite = window.nostrSite
+      nostrSite.tabReady.then(async () => {
+        const renderer = nostrSite.renderer
+        const profiles = await renderer.fetchProfiles([getAuthorPubkey()])
+        if (profiles.length) {
+          this.authorName = profiles[0].profile.display_name || profiles[0].profile.display_name
+          this.authorAvatar = profiles[0].profile.picture
+        }
+      })
     })
   }
 
@@ -155,7 +180,6 @@ export class NostrContentCta extends LitElement {
       // a generalized way to notify nostr-site about the new relevant event
       this.pluginEndpoint?.dispatch('event-published', nostrEvent)
       this.loading = ''
-      this._handleShowCompletionModal('reaction')
     } catch {
       this.loading = ''
     }
@@ -167,7 +191,17 @@ export class NostrContentCta extends LitElement {
       const nostrEvent = await publishNote(text)
       this.pluginEndpoint?.dispatch('event-published', nostrEvent)
       this.loading = ''
-      this._handleShowCompletionModal('note')
+    } catch {
+      this.loading = ''
+    }
+  }
+
+  private async _publishHighlight(text: string) {
+    try {
+      this.loading = 'highlight'
+      const nostrEvent = await publishHighlight(text)
+      this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+      this.loading = ''
     } catch {
       this.loading = ''
     }
@@ -187,7 +221,6 @@ export class NostrContentCta extends LitElement {
       const nostrEvent = await publishFollow(pubkey)
       this.pluginEndpoint?.dispatch('event-published', nostrEvent)
       this.loading = ''
-      this._handleShowCompletionModal('follow')
     } catch {
       this.loading = ''
     }
@@ -199,9 +232,29 @@ export class NostrContentCta extends LitElement {
       const nostrEvent = await publishBookmark()
       this.pluginEndpoint?.dispatch('event-published', nostrEvent)
       this.loading = ''
-      this._handleShowCompletionModal('bookmark')
     } catch {
       this.loading = ''
+    }
+  }
+
+  private isCompletion() {
+    return !!this.getCompletionText()
+  }
+
+  private getCompletionText() {
+    switch (this.completion) {
+      case 'bookmark':
+        return 'Thank you for your bookmark!'
+      case 'follow':
+        return 'Thank you for following!'
+      case 'note':
+        return 'Thank you for posting!'
+      case 'reaction':
+        return 'Thank you for your reaction!'
+      case 'share':
+        return 'Thank you for sharing!'
+      case 'highlight':
+        return 'Thank you for highlighting!'
     }
   }
 
@@ -288,23 +341,21 @@ export class NostrContentCta extends LitElement {
         @close-modal=${this._handleCloseModal}
         .open=${this.showShareOptions}
         .publishNote=${this._publishNote.bind(this)}
+        .publishHighlight=${this._publishHighlight.bind(this)}
         .accent=${this.buttonColor}
         .ready=${this.ready}
         .openModal=${this._handleShowShareOptions.bind(this)}
       >
       </np-content-cta-modal-share-apps>
 
-      <np-content-cta-modal-loading .open=${!!this.loading}></np-content-cta-modal-loading>
+      <np-content-cta-modal-loading .open=${!!this.loading} .loading=${this.loading}></np-content-cta-modal-loading>
 
       <np-content-cta-modal-completion
         @close-modal=${this._handleCloseCompletionModal}
-        .open=${!!this.completion}
-        .title=${'Username'}
-        .text=${html`<div>
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Eaque, esse harum ipsum error sit voluptatum, est
-          similique voluptates cum aspernatur accusantium, provident natus maxime temporibus ducimus incidunt tempora
-          libero. Fuga?
-        </div>`}
+        .open=${this.isCompletion()}
+        .title=${this.authorName}
+        .avatar=${this.authorAvatar}
+        .text=${this.getCompletionText()}
         .buttonText=${'Continue'}
       ></np-content-cta-modal-completion>
 

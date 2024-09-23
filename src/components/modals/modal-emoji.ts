@@ -37,9 +37,10 @@ export class ModalEmoji extends LitElement {
       picker.addEventListener('emoji-click', this._handleEmojiClick.bind(this))
     }
     return html`
-      <np-content-cta-modal @close-modal=${this._handleClose} .title=${'Choose an emoji'}>
+      <np-content-cta-modal @close-modal=${this._handleClose} .title=${'Click on emoji'}>
         <div class="flex flex-col gap-[8px]">
           <emoji-picker class="light w-full" @emoji-picker=${this._handleEmojiClick} ${ref(refCallback)}></emoji-picker>
+          <p class="w-full text-[14px] text-center text-gray">Click on emoji to post your reaction</p>
         </div>
       </np-content-cta-modal>
     `

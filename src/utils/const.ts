@@ -17,6 +17,11 @@ const ACTIONS: Record<string, ItemAction> = {
     label: 'Bookmark',
     icon: Icons.Bookmark,
   },
+  share: {
+    value: 'share',
+    label: 'Share',
+    icon: Icons.Share,
+  },
   follow: {
     value: 'follow',
     label: 'Follow',
@@ -26,11 +31,6 @@ const ACTIONS: Record<string, ItemAction> = {
     value: 'open-with',
     label: 'Open with',
     icon: Icons.LinkOut,
-  },
-  share: {
-    value: 'share',
-    label: 'Share',
-    icon: Icons.Share,
   },
 }
 

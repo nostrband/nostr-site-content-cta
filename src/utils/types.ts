@@ -8,6 +8,6 @@ export type IShareApp = {
   icon: TemplateResult
 }
 
-export type LoadingState = '' | 'follow' | 'share' | 'reaction' | 'note' | 'bookmark'
-export type CompletionState = '' | 'follow' | 'share' | 'reaction' | 'note' | 'bookmark'
+export type LoadingState = '' | 'follow' | 'share' | 'reaction' | 'note' | 'bookmark' | 'highlight'
+export type CompletionState = '' | 'follow' | 'share' | 'reaction' | 'note' | 'bookmark' | 'highlight'
 export type NostrSelectionDetails = { type: 'quote' | 'highlight'; text: string }

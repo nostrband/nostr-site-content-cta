@@ -18,6 +18,7 @@ export class ModalShareApps extends LitElement {
   @property() open = false
   @property() ready = false
   @property() publishNote?: (text: string) => Promise<void>
+  @property() publishHighlight?: (text: string) => Promise<void>
   @property() openModal: () => void = () => undefined
   @property() accent = ''
 
@@ -38,9 +39,23 @@ export class ModalShareApps extends LitElement {
 
   private _handleSelectionChange(e: CustomEvent<NostrSelectionDetails>) {
     this.openModal()
-    this._handleOpenNostrShareModal()
-    if (e.detail.type === 'quote') this.nostrText = e.detail.text
-    if (e.detail.type === 'highlight') this.highlightText = e.detail.text
+    if (e.detail.type === 'quote') {
+      this._initNostrText() // reset
+      // prepend the quote
+      this.nostrText = '> ' + e.detail.text + '\n' + this.nostrText
+      console.log('quote', e.detail.text, this.nostrText)
+      this.highlightText = '' // reset
+    }
+    if (e.detail.type === 'highlight') {
+      this.nostrText = '' // clear, it's optional
+      this.highlightText = e.detail.text
+    }
+
+    // doesn't work in sync way
+    setTimeout(() => {
+      this._handleClose()
+      this._handleOpenNostrShareModal()
+    }, 0)
   }
 
   private _handleOpenNostrShareModal() {
@@ -61,6 +76,8 @@ export class ModalShareApps extends LitElement {
     this._handleClose()
 
     if (app.id === 'nostr') {
+      this._initNostrText() // reset
+      this.highlightText = '' // clear
       return this._handleOpenNostrShareModal()
     }
 
@@ -100,13 +117,10 @@ export class ModalShareApps extends LitElement {
     if (url) window.open(url, '_blank', 'noopener,noreferrer')
   }
 
-  private async _initNostrText() {
+  private _initNostrText() {
     // @ts-ignore
     const nostrSite: any = window.nostrSite
     if (!nostrSite) return
-
-    // wait until renderer starts
-    await nostrSite.tabReady
 
     const id = document.querySelector('meta[name="nostr:id"]')?.getAttribute('content') || ''
     const nip19 = nostrSite.nostrTools.nip19
@@ -124,19 +138,14 @@ export class ModalShareApps extends LitElement {
     this.nostrText = `\nnostr:${text}`
   }
 
-  updated(changedProperties: { has: (args: string) => any }) {
-    if (changedProperties.has('ready') && this.ready) {
-      this._initNostrText()
-    }
-  }
-
   render() {
     if (this.nostrShareModalOpen) {
       return html`
         <np-content-cta-modal-nostr-share
           @close-modal=${this._handleCloseNostrShareModal}
           .open=${this.nostrShareModalOpen}
-          .publish=${this.publishNote}
+          .publishNote=${this.publishNote}
+          .publishHighlight=${this.publishHighlight}
           .text=${this.nostrText}
           .accent=${this.accent}
           .highlightText=${this.highlightText}

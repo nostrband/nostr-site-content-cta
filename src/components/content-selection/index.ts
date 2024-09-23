@@ -52,7 +52,7 @@ export class ContentSelection extends LitElement {
       if (!npContent) return this._hidePopupMenu()
 
       this.selectedText = selection.toString()
-      if (this.selectedText.length > 0) this._showPopupMenu(range)
+      if (this.selectedText.trim().length > 0) this._showPopupMenu(range)
       else this._hidePopupMenu()
     }
   }

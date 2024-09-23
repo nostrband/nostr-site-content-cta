@@ -1,5 +1,5 @@
 import { ACTIONS } from './const'
-import { ItemAction } from './types'
+import { CompletionState, ItemAction } from './types'
 
 const userRelaysCache = new Map<string, string[]>()
 
@@ -105,6 +105,19 @@ async function publish(event: any) {
   return await renderer.publishEvent(event, { relays: await getUserRelays(event.pubkey) })
 }
 
+function getRef() {
+  return window.location.origin + window.location.pathname + window.location.search
+}
+
+function getTagRelay() {
+  // @ts-ignore
+  const renderer = window.nostrSite.renderer
+  const site = renderer.getSite()
+  return site.contributor_relays && site.contributor_relays.length
+    ? site.contributor_relays[0]
+    : 'wss://relay.nostr.band/'
+}
+
 export async function publishReaction(emoji: string) {
   const [id, addr] = getIdAddr()
   const author = getAuthorPubkey()
@@ -115,21 +128,19 @@ export async function publishReaction(emoji: string) {
   // @ts-ignore
   const pubkey = await window.nostr.getPublicKey()
 
-  // @ts-ignore
-  const renderer = window.nostrSite.renderer
-  const site = renderer.getSite()
-  const relay = site.contributor_relays && site.contributor_relays.length ? site.contributor_relays[0] : ''
-
   // template
   const event = {
     kind: 7,
     content: emoji,
     pubkey,
     created_at: Math.floor(Date.now() / 1000),
-    tags: [['p', author]],
+    tags: [
+      ['p', author],
+      ['r', getRef()],
+    ],
   }
-  if (id) event.tags.push(['e', id, relay])
-  else event.tags.push(['a', addr, relay])
+  if (id) event.tags.push(['e', id, getTagRelay()])
+  else event.tags.push(['a', addr, getTagRelay()])
 
   return publish(event)
 }
@@ -137,6 +148,7 @@ export async function publishReaction(emoji: string) {
 export async function publishNote(text: string) {
   // @ts-ignore
   const pubkey = await window.nostr.getPublicKey()
+  const author = getAuthorPubkey()
 
   // template
   const event = {
@@ -144,9 +156,13 @@ export async function publishNote(text: string) {
     content: text,
     pubkey,
     created_at: Math.floor(Date.now() / 1000),
-    tags: [],
+    tags: [
+      ['p', author],
+      ['r', getRef()],
+    ],
   }
 
+  // NDK will auto-parse the nostr: links and #hashtags
   return publish(event)
 }
 
@@ -157,7 +173,7 @@ export async function publishFollow(followPubkey: string) {
   // @ts-ignore
   const renderer = window.nostrSite.renderer
 
-  const KIND = 3;
+  const KIND = 3
   const relays = await getUserRelays(pubkey)
   const contactList = await renderer.fetchEvent(
     {
@@ -167,11 +183,6 @@ export async function publishFollow(followPubkey: string) {
     { relays, outboxRelays: true, timeoutMs: 10000 }
   )
 
-  const site = renderer.getSite()
-  const relay =
-    site.contributor_relays && site.contributor_relays.length ? site.contributor_relays[0] : 'wss://relay.nostr.band/'
-
-  // template
   const event = {
     // defaults
     tags: [],
@@ -184,14 +195,14 @@ export async function publishFollow(followPubkey: string) {
     created_at: Math.floor(Date.now() / 1000),
   }
   if (!event.tags.find((t: string[]) => t.length >= 2 && t[1] === followPubkey))
-    event.tags.push(['p', followPubkey, relay])
+    event.tags.push(['p', followPubkey, getTagRelay()])
 
   return publish(event)
 }
 
 export async function publishBookmark() {
-  const [id, addr] = getIdAddr();
-  if (!id && !addr) return;
+  const [id, addr] = getIdAddr()
+  if (!id && !addr) return
 
   // @ts-ignore
   const pubkey = await window.nostr.getPublicKey()
@@ -199,7 +210,7 @@ export async function publishBookmark() {
   // @ts-ignore
   const renderer = window.nostrSite.renderer
 
-  const KIND = 10003;
+  const KIND = 10003
   const relays = await getUserRelays(pubkey)
   const list = await renderer.fetchEvent(
     {
@@ -208,10 +219,6 @@ export async function publishBookmark() {
     },
     { relays, timeoutMs: 10000 }
   )
-
-  const site = renderer.getSite()
-  const relay =
-    site.contributor_relays && site.contributor_relays.length ? site.contributor_relays[0] : 'wss://relay.nostr.band/'
 
   // template
   const event = {
@@ -226,9 +233,56 @@ export async function publishBookmark() {
     created_at: Math.floor(Date.now() / 1000),
   }
   if (!event.tags.find((t: string[]) => t.length >= 2 && t[1] === (id || addr))) {
-    if (id) event.tags.push(['e', id, relay])
-    else event.tags.push(['a', addr, relay])
+    if (id) event.tags.push(['e', id, getTagRelay()])
+    else event.tags.push(['a', addr, getTagRelay()])
   }
 
   return publish(event)
+}
+
+export async function publishHighlight(text: string) {
+  const [id, addr] = getIdAddr()
+  const author = getAuthorPubkey()
+  console.log('id', id, 'addr', addr, 'author', author)
+  if (!id && !addr) throw new Error('No id/addr')
+  if (!author) throw new Error('No author')
+
+  // @ts-ignore
+  const pubkey = await window.nostr.getPublicKey()
+
+  // template
+  const event = {
+    kind: 9802,
+    content: text,
+    pubkey,
+    created_at: Math.floor(Date.now() / 1000),
+    tags: [
+      ['p', author],
+      ['r', getRef()],
+    ],
+  }
+  if (id) event.tags.push(['e', id, getTagRelay()])
+  else event.tags.push(['a', addr, getTagRelay()])
+
+  // NDK will auto-parse the nostr: links and #hashtags
+  return publish(event)
+}
+
+export function getCompletionForEvent(e: any): CompletionState {
+  switch (e.kind) {
+    case 7:
+      return 'reaction'
+    case 1:
+      // reply is 'note', root is 'share'
+      if (e.tags.find((t: string[]) => t.length >= 4 && (t[0] === 'e' || t[0] === 'a') && t[3] === 'root'))
+        return 'note'
+      else return 'share'
+    case 3:
+      return 'follow'
+    case 9802:
+      return 'highlight'
+    case 10003:
+      return 'bookmark'
+  }
+  return ''
 }

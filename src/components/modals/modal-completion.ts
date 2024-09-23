@@ -39,9 +39,10 @@ export class ModalCompletion extends LitElement {
         <div class="flex flex-col gap-[12px] items-center">
           <span class="h-[48px] w-[48px] inline-block"> ${this._getProfilePicture(this.avatar, this.userName)} </span>
           <h1 class="font-medium text-[20px]">${this.title}</h1>
-          <p class="w-full text-[14px]">${this.text}</p>
+          <p class="w-full text-[14px] text-center">${this.text}</p>
           <button
             class="w-full bg-sky-600 rounded-lg p-2 text-white hover:bg-sky-700 active:bg-sky-800 transition-colors"
+            @click=${this._handleClose}
           >
             ${this.buttonText || 'Cancel'}
           </button>

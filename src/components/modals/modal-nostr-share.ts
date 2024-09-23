@@ -16,21 +16,27 @@ export class ModalNostrShare extends LitElement {
   @property() open = false
   @property() text = ''
   @property() highlightText = ''
-  @property() publish?: (text: string) => Promise<void>
+  @property() publishNote?: (text: string) => Promise<void>
+  @property() publishHighlight?: (text: string) => Promise<void>
   @property() accent = ''
   @query('#np-textarea')
   textarea!: HTMLTextAreaElement
 
   protected firstUpdated() {
-    this.textarea.value = this.text
-    this.textarea.focus()
+    if (this.textarea) {
+      this.textarea.value = this.text
+    }
   }
 
   private _postMessage() {
-    console.log(this.textarea.value)
-    if (this.textarea.value && this.publish) {
-      this._handleClose()
-      this.publish(this.textarea.value)
+    this._handleClose()
+    if (this.highlightText) {
+      if (this.publishHighlight) this.publishHighlight(this.highlightText)
+    } else {
+      console.log(this.textarea.value)
+      if (this.textarea.value && this.publishNote) {
+        this.publishNote(this.textarea.value)
+      }
     }
   }
 
@@ -41,21 +47,28 @@ export class ModalNostrShare extends LitElement {
   render() {
     if (!this.open) return nothing
     return html`
-      <np-content-cta-modal @close-modal=${this._handleClose} .title=${'Share on Nostr'}>
+      <np-content-cta-modal
+        @close-modal=${this._handleClose}
+        .title=${this.highlightText ? 'Highlight' : 'Share on Nostr'}
+      >
         <div class="flex flex-col gap-[8px]">
           ${this.highlightText
             ? html`<blockquote>
                 <p>«${this.highlightText}»</p>
               </blockquote>`
             : nothing}
-          <textarea
-            class="w-full outline-none border-neutral-300 border-[1.5px] rounded-md p-2 py-3 placeholder:font-light transition-colors"
-            style="${this.accent ? `border: 1px solid ${this.accent}` : ''}"
-            rows="5"
-            placeholder="Enter something"
-            id="np-textarea"
-          >
-          </textarea>
+          ${!this.highlightText
+            ? html`
+                <textarea
+                  class="w-full outline-none border-neutral-300 border-[1.5px] rounded-md p-2 py-3 placeholder:font-light transition-colors"
+                  style="${this.accent ? `border: 1px solid ${this.accent}` : ''}"
+                  rows="5"
+                  placeholder="Enter something"
+                  id="np-textarea"
+                >
+                </textarea>
+              `
+            : nothing}
           <button
             class="rounded-lg p-2 text-white transition-colors"
             style="${this.accent ? `background-color: ${this.accent}` : ''}"
