@@ -1,5 +1,6 @@
 import { LitElement, css, html, nothing } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
+import { EmojiClickEvent } from 'emoji-picker-element/shared'
 import { TWStyles } from './modules/tw/twlit'
 import {
   ACTIONS,
@@ -10,12 +11,23 @@ import {
   DEFAULT_BUTTON_COLOR,
   DEFAULT_BUTTON_TEXT_COLOR,
   DEFAULT_MAIN_ACTION,
+  NPUB_ATTR,
 } from './utils/const'
-import { ItemAction } from './utils/types'
+import { CompletionState, ItemAction, LoadingState } from './utils/types'
 import { Icons } from './assets/icons'
-import { prepareActionsList } from './utils/helpers'
+import {
+  getAuthorPubkey,
+  getCompletionForEvent,
+  prepareActionsList,
+  publishBookmark,
+  publishFollow,
+  publishHighlight,
+  publishNote,
+  publishReaction,
+} from './utils/helpers'
 import './components'
 import { ModalApps, ModalLogin } from './components'
+import 'emoji-picker-element'
 
 async function waitNostrSite() {
   // @ts-ignore
@@ -40,10 +52,18 @@ export class NostrContentCta extends LitElement {
   @property({ attribute: false }) buttonTextColor = DEFAULT_BUTTON_TEXT_COLOR
   @property({ attribute: false }) actions: ItemAction[] = []
   @property({ attribute: false }) mainAction: ItemAction = DEFAULT_MAIN_ACTION
+  @property({ attribute: NPUB_ATTR }) npub: string = ''
 
   @state() actionsModalOpen = false
+  @state() showEmojiPicker = false
+  @state() showShareOptions = false
   @state() appsModalOpen = false
   @state() ready = false
+  @state() private updateTrigger: number = 0
+  @state() private loading: LoadingState = ''
+  @state() private completion: CompletionState = ''
+  @state() private authorName: string = ''
+  @state() private authorAvatar: string = ''
 
   pluginEndpoint: any | undefined = undefined
 
@@ -54,7 +74,7 @@ export class NostrContentCta extends LitElement {
     const mainAction = this.getAttribute(CTA_MAIN_ACTION_ATTR) || 'zap'
     this.mainAction = ACTIONS[mainAction]
 
-    const actions = this.getAttribute(CTA_LIST_ATTR) || ''
+    const actions = this.getAttribute(CTA_LIST_ATTR) || Object.keys(ACTIONS).join(',')
     this.actions = prepareActionsList(actions, mainAction)
 
     this.buttonColor = this.getAttribute(BUTTON_COLOR_ATTR) || DEFAULT_BUTTON_COLOR
@@ -65,8 +85,38 @@ export class NostrContentCta extends LitElement {
       this.pluginEndpoint.subscribe('action-open-with', () => {
         this._handleOpenAppsModal()
       })
+      this.pluginEndpoint.subscribe('action-like', () => {
+        this._handleShowEmojiPicker()
+      })
+      this.pluginEndpoint.subscribe('action-share', () => {
+        this._handleShowShareOptions()
+      })
+      this.pluginEndpoint.subscribe('event-published', (e: any) => {
+        console.log('content-cta on event published', e)
+        this.updateTrigger = Date.now()
+        const completion = getCompletionForEvent(e)
+        if (completion) this._handleShowCompletionModal(completion)
+      })
+      this.pluginEndpoint.subscribe('action-follow', () => {
+        this._handleFollow()
+      })
+      this.pluginEndpoint.subscribe('action-bookmark', () => {
+        this._handleBookmark()
+      })
+
       console.log('content-cta ready')
       this.ready = true
+
+      // @ts-ignore
+      const nostrSite = window.nostrSite
+      nostrSite.tabReady.then(async () => {
+        const renderer = nostrSite.renderer
+        const profiles = await renderer.fetchProfiles([getAuthorPubkey()])
+        if (profiles.length) {
+          this.authorName = profiles[0].profile.display_name || profiles[0].profile.display_name
+          this.authorAvatar = profiles[0].profile.picture
+        }
+      })
     })
   }
 
@@ -83,30 +133,151 @@ export class NostrContentCta extends LitElement {
     this.appsModalOpen = false
   }
 
+  private _handleShowEmojiPicker() {
+    this.showEmojiPicker = true
+  }
+
+  private _handleCloseEmojiPicker() {
+    this.showEmojiPicker = false
+  }
+
+  private _handleShowShareOptions() {
+    this.showShareOptions = true
+  }
+
+  private _handleCloseShareOptions() {
+    this.showShareOptions = false
+  }
+
+  private _handleShowCompletionModal(completion: CompletionState) {
+    this.completion = completion
+  }
+
+  private _handleCloseCompletionModal() {
+    this.completion = ''
+  }
+
   private _handleCloseModal() {
     this._handleCloseActionsModal()
     this._handleCloseAppsModal()
+    this._handleCloseEmojiPicker()
+    this._handleCloseShareOptions()
+    this._handleCloseCompletionModal()
   }
 
   private _handleButtonClick(type: string) {
     this.pluginEndpoint?.dispatch(`action-${type}`)
-
     // close the actions modal
     this.actionsModalOpen = false
   }
 
+  private async _publishReaction(event: EmojiClickEvent) {
+    if (!event.detail.unicode) return
+
+    try {
+      this.loading = 'reaction'
+      const nostrEvent = await publishReaction(event.detail.unicode!)
+      // a generalized way to notify nostr-site about the new relevant event
+      this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+      this.loading = ''
+    } catch {
+      this.loading = ''
+    }
+  }
+
+  private async _publishNote(text: string) {
+    try {
+      this.loading = 'note'
+      const nostrEvent = await publishNote(text)
+      this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+      this.loading = ''
+    } catch {
+      this.loading = ''
+    }
+  }
+
+  private async _publishHighlight(text: string) {
+    try {
+      this.loading = 'highlight'
+      const nostrEvent = await publishHighlight(text)
+      this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+      this.loading = ''
+    } catch {
+      this.loading = ''
+    }
+  }
+
+  private async _handleFollow() {
+    const npub = document.querySelector('meta[name="nostr:author"]')?.getAttribute('content')
+    console.log('follow npub', npub)
+    if (!npub || !npub.startsWith('npub')) return
+    try {
+      this.loading = 'follow'
+      // @ts-ignore
+      const nostrSite = window.nostrSite
+      const pubkey = nostrSite.nostrTools.nip19.decode(npub).data
+      console.log('follow pubkey', pubkey)
+
+      const nostrEvent = await publishFollow(pubkey)
+      this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+      this.loading = ''
+    } catch {
+      this.loading = ''
+    }
+  }
+
+  private async _handleBookmark() {
+    try {
+      this.loading = 'bookmark'
+      const nostrEvent = await publishBookmark()
+      this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+      this.loading = ''
+    } catch {
+      this.loading = ''
+    }
+  }
+
+  private isCompletion() {
+    return !!this.getCompletionText()
+  }
+
+  private getCompletionText() {
+    switch (this.completion) {
+      case 'bookmark':
+        return 'Thank you for your bookmark!'
+      case 'follow':
+        return 'Thank you for following!'
+      case 'note':
+        return 'Thank you for posting!'
+      case 'reaction':
+        return 'Thank you for your reaction!'
+      case 'share':
+        return 'Thank you for sharing!'
+      case 'highlight':
+        return 'Thank you for highlighting!'
+    }
+  }
+
   renderActionsModal() {
-    if (!this.actionsModalOpen || this.appsModalOpen) return nothing
+    if (!this.actionsModalOpen || this.appsModalOpen || this.showEmojiPicker || this.showShareOptions) return nothing
+
     return html`
       <np-content-cta-modal @close-modal=${this._handleCloseModal} .title=${'Actions'}>
         <div class="flex flex-col gap-[8px]">
           ${this.actions.map((action) => {
             return html` <button
               @click=${() => this._handleButtonClick(action.value)}
+              id="${action.value}"
               class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-2 flex justify-center gap-[8px] items-center"
+              ${action.value === this.mainAction.value ? `style="background-color: ${this.buttonColor}"` : ``}
             >
-              <div class="w-[24px] h-[24px]">${action.icon}</div>
-              ${action.label}
+              <div class="w-[80%] flex justify-end">
+                <div class="w-[24px] h-[24px]">${action.icon}</div>
+              </div>
+
+              <div class="w-full flex justify-start">
+                <div>${action.label}</div>
+              </div>
             </button>`
           })}
         </div>
@@ -117,8 +288,20 @@ export class NostrContentCta extends LitElement {
   render() {
     return html`
       <div class="w-full flex flex-col gap-[8px]">
-        <np-content-cta-zaps .ready=${this.ready}></np-content-cta-zaps>
-        <np-content-cta-reactions .ready=${this.ready}></np-content-cta-reactions>
+        <np-content-cta-zaps
+          .ready=${this.ready}
+          .npub=${this.npub}
+          .accent=${this.buttonColor}
+          .updateTrigger=${this.updateTrigger}
+        ></np-content-cta-zaps>
+
+        <np-content-cta-reactions
+          .ready=${this.ready}
+          .npub=${this.npub}
+          .accent=${this.buttonColor}
+          .updateTrigger=${this.updateTrigger}
+        ></np-content-cta-reactions>
+
         <div class="w-full flex align-middle gap-[12px]">
           <button
             class=" w-full border-2 rounded-[5px] p-[6px] hover:opacity-95 active:opacity-85 transition-opacity flex justify-center gap-[8px] items-center"
@@ -141,6 +324,37 @@ export class NostrContentCta extends LitElement {
 
       <np-content-cta-modal-apps @close-modal=${this._handleCloseModal} .open=${this.appsModalOpen}>
       </np-content-cta-modal-apps>
+
+      <np-content-cta-modal-emoji
+        @close-modal=${this._handleCloseModal}
+        .open=${this.showEmojiPicker}
+        .publish=${this._publishReaction.bind(this)}
+      >
+      </np-content-cta-modal-emoji>
+
+      <np-content-cta-modal-share-apps
+        @close-modal=${this._handleCloseModal}
+        .open=${this.showShareOptions}
+        .publishNote=${this._publishNote.bind(this)}
+        .publishHighlight=${this._publishHighlight.bind(this)}
+        .accent=${this.buttonColor}
+        .ready=${this.ready}
+        .openModal=${this._handleShowShareOptions.bind(this)}
+      >
+      </np-content-cta-modal-share-apps>
+
+      <np-content-cta-modal-loading .open=${!!this.loading} .loading=${this.loading}></np-content-cta-modal-loading>
+
+      <np-content-cta-modal-completion
+        @close-modal=${this._handleCloseCompletionModal}
+        .open=${this.isCompletion()}
+        .title=${this.authorName}
+        .avatar=${this.authorAvatar}
+        .text=${this.getCompletionText()}
+        .buttonText=${'Continue'}
+      ></np-content-cta-modal-completion>
+
+      <np-content-cta-selection></np-content-cta-selection>
     `
   }
 }

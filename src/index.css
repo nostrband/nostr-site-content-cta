@@ -8,3 +8,23 @@
     font-size: 16px;
   }
 }
+
+emoji-picker {
+  --num-columns: 8;
+  --emoji-size: 26px;
+  --emoji-padding: 8px;
+  --border-radius: 4px;
+  --input-border-radius: 6px;
+  --input-padding: 8px 16px;
+  --input-font-size: 16px;
+  --input-placeholder-color: #6b7280;
+  --input-border-color: #e5e7eb;
+  --outline-size: 1px;
+  --button-hover-background: #e5e7eb;
+}
+
+@media screen and (max-width: 480px) {
+  emoji-picker {
+    --num-columns: 6;
+  }
+}
