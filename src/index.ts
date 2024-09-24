@@ -1,7 +1,12 @@
 import { LitElement, css, html, nothing } from 'lit'
 import { customElement, property, state } from 'lit/decorators.js'
-import { EmojiClickEvent } from 'emoji-picker-element/shared'
 import { TWStyles } from './modules/tw/twlit'
+
+import { Icons } from './assets/icons'
+
+import { EmojiClickEvent } from 'emoji-picker-element/shared'
+import { CompletionState, ItemAction, LoadingState } from './utils/types'
+
 import {
   ACTIONS,
   BUTTON_COLOR_ATTR,
@@ -13,8 +18,6 @@ import {
   DEFAULT_MAIN_ACTION,
   NPUB_ATTR,
 } from './utils/const'
-import { CompletionState, ItemAction, LoadingState } from './utils/types'
-import { Icons } from './assets/icons'
 import {
   getAuthorPubkey,
   getCompletionForEvent,
@@ -25,9 +28,9 @@ import {
   publishNote,
   publishReaction,
 } from './utils/helpers'
-import './components'
-import { ModalApps, ModalLogin } from './components'
+
 import 'emoji-picker-element'
+import './components'
 
 async function waitNostrSite() {
   // @ts-ignore
@@ -359,46 +362,4 @@ export class NostrContentCta extends LitElement {
   }
 }
 
-function loadFonts() {
-  const link = document.createElement('link')
-  link.setAttribute('rel', 'stylesheet')
-  link.setAttribute('type', 'text/css')
-  link.setAttribute('href', 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@300..800&display=swap')
-  document.head.appendChild(link)
-}
-
-if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', loadFonts)
-else loadFonts()
-
-const openAppsModal = (id: string, kind: number, userPubkey: string) => {
-  console.log({ id, kind, userPubkey })
-
-  const exists = document.getElementById('apps-modal-instance') as ModalApps | null
-  if (exists) {
-    exists.open = true
-    return
-  }
-  const root = document.createElement('np-content-cta-modal-apps') as ModalApps
-  root.id = 'apps-modal-instance'
-  root.open = true
-  root.idParam = id
-  root.kind = kind
-  root.userPubkey = userPubkey
-  root.addEventListener('close-modal', () => (root.open = false))
-  document.body.appendChild(root)
-}
-
-const openLoginModal = () => {
-  const exists = document.getElementById('login-modal-instance') as ModalLogin | null
-  if (exists) {
-    exists.open = true
-    return
-  }
-  const root = document.createElement('np-content-cta-modal-login') as ModalLogin
-  root.id = 'login-modal-instance'
-  root.open = true
-  root.addEventListener('close-modal', () => (root.open = false))
-  document.body.appendChild(root)
-}
-
-export { openAppsModal, openLoginModal }
+export * from './modules/init'
