@@ -79,9 +79,12 @@ export class ContentSelection extends LitElement {
         const popupWidth = popup.offsetWidth
         const popupHeight = popup.offsetHeight
 
-        if (proposedLeft + popupWidth > window.innerWidth) proposedLeft -= popupWidth
-        if (proposedTop + popupHeight > window.innerHeight) proposedTop -= popupHeight
-
+        if (proposedLeft + popupWidth > window.innerWidth) {
+          proposedLeft = window.innerWidth - popupWidth - 10
+        }
+        if (proposedTop + popupHeight > window.scrollY + window.innerHeight - popupWidth) {
+          proposedTop = window.scrollY + lastRect.bottom - popupHeight - 10
+        }
         popup.style.left = `${proposedLeft}px`
         popup.style.top = `${proposedTop}px`
         popup.style.visibility = 'visible'
@@ -119,18 +122,18 @@ export class ContentSelection extends LitElement {
   render() {
     return html`
       <div
-        class="my-[2px] ml-[4px] mr-[8px] p-[12px] absolute hidden bg-white shadow-md  rounded-[10px] flex-col gap-[8px]"
+        class="my-[2px] ml-[4px] mr-[8px] p-[12px] absolute hidden bg-white shadow-md  rounded-[10px] flex-col gap-[8px] !z-[9999999]"
         id="np-content-selection-popup"
       >
         <button
-          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-center gap-[8px] items-center text-[14px]"
+          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-center gap-[8px] items-center text-[14px] text-black"
           @click="${this._handleQuoteText}"
         >
           ${Icons.Quotes} Quote
         </button>
 
         <button
-          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-center gap-[8px] items-center text-[14px]"
+          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-center gap-[8px] items-center text-[14px] text-black"
           @click="${this._handleHighlightText}"
         >
           ${Icons.Highlight} Highlight

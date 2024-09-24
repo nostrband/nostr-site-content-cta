@@ -84,8 +84,8 @@ export class Reactions extends LitElement {
   @property() reactions: Reaction[] = []
   @query('#reactions-scroll-container') scrollContainer?: HTMLDivElement | null
 
-  @state() since = 0;
-  @state() loading = false;
+  @state() since = 0
+  @state() loading = false
 
   async loadData() {
     // @ts-ignore
@@ -107,7 +107,7 @@ export class Reactions extends LitElement {
     const filter: any = {
       kinds: [7],
       limit: 500,
-      since: this.since + 1
+      since: this.since + 1,
     }
     if (id) filter['#e'] = [id]
     else filter['#a'] = [addr]
@@ -121,8 +121,7 @@ export class Reactions extends LitElement {
 
     const reactions: Reaction[] = [...this.reactions]
     for (const e of [...events]) {
-
-      this.since = Math.max(this.since, e.created_at);
+      this.since = Math.max(this.since, e.created_at)
 
       const [shortcode, url] = nostrSite.utils.tvs(e, 'emoji') || ['', '']
       // console.log('shortcode, url', shortcode, url, e.id)
@@ -155,7 +154,7 @@ export class Reactions extends LitElement {
     }
     console.log('content-cta reactions', reactions)
 
-    this.reactions = reactions;
+    this.reactions = reactions
 
     this.prepareData()
   }
@@ -181,13 +180,13 @@ export class Reactions extends LitElement {
   async updated(changedProperties: { has: (args: string) => any }) {
     if (changedProperties.has('ready') || changedProperties.has('npub') || changedProperties.has('updateTrigger')) {
       if (this.ready) {
-        if (this.loading) return;
+        if (this.loading) return
 
-        this.loading = true;
+        this.loading = true
         try {
           await this.loadData()
         } catch {}
-        this.loading = false;
+        this.loading = false
       }
     }
   }
