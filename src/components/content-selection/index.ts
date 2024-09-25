@@ -123,7 +123,7 @@ export class ContentSelection extends LitElement {
         id="np-content-selection-popup"
       >
         <button
-          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-center gap-[8px] items-center"
+          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-start gap-[8px] items-center"
           @click="${this._handleCommentText}"
         >
           ${Icons.Comment}
@@ -131,7 +131,7 @@ export class ContentSelection extends LitElement {
         </button>
 
         <button
-          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-center gap-[8px] items-center"
+          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-start gap-[8px] items-center"
           @click="${this._handleQuoteText}"
         >
           ${Icons.Quotes}
@@ -139,7 +139,7 @@ export class ContentSelection extends LitElement {
         </button>
 
         <button
-          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-center gap-[8px] items-center"
+          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-start gap-[8px] items-center"
           @click="${this._handleHighlightText}"
         >
           ${Icons.Highlight}
