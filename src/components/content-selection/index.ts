@@ -14,7 +14,7 @@ export class ContentSelection extends LitElement {
     TWStyles,
   ]
 
-  @property() onAction?: ((type: string, text: string) => void)
+  @property() onAction?: (type: string, text: string) => void
 
   @state() selectedText = ''
   @state() debounceTimer?: number
@@ -100,7 +100,7 @@ export class ContentSelection extends LitElement {
   }
 
   private _handleText = (type: 'quote' | 'highlight' | 'comment') => {
-    this.onAction!(type, this.selectedText);
+    this.onAction!(type, this.selectedText)
     this._hidePopupMenu()
   }
 
@@ -123,24 +123,27 @@ export class ContentSelection extends LitElement {
         id="np-content-selection-popup"
       >
         <button
-          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-center gap-[8px] items-center text-[14px] text-black"
+          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-start gap-[8px] items-center"
           @click="${this._handleCommentText}"
         >
-          ${Icons.Quotes} Comment
+          ${Icons.Comment}
+          <span class="flex-grow text-left text-[14px] text-black">Comment</span>
         </button>
 
         <button
-          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-center gap-[8px] items-center text-[14px] text-black"
+          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-start gap-[8px] items-center"
           @click="${this._handleQuoteText}"
         >
-          ${Icons.Quotes} Quote
+          ${Icons.Quotes}
+          <span class="flex-grow text-left text-[14px] text-black">Quote</span>
         </button>
 
         <button
-          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-center gap-[8px] items-center text-[14px] text-black"
+          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-start gap-[8px] items-center"
           @click="${this._handleHighlightText}"
         >
-          ${Icons.Highlight} Highlight
+          ${Icons.Highlight}
+          <span class="flex-grow text-left text-[14px] text-black">Highlight</span>
         </button>
       </div>
     `
