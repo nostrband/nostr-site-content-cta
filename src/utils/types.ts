@@ -10,4 +10,4 @@ export type IShareApp = {
 
 export type LoadingState = '' | 'follow' | 'share' | 'reaction' | 'note' | 'bookmark' | 'highlight'
 export type CompletionState = '' | 'follow' | 'share' | 'reaction' | 'note' | 'bookmark' | 'highlight'
-export type NostrSelectionDetails = { type: 'quote' | 'highlight'; text: string }
+export type NostrSelectionDetails = { type: 'quote' | 'highlight' | 'comment'; text: string }

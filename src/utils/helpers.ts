@@ -240,7 +240,7 @@ export async function publishBookmark() {
   return publish(event)
 }
 
-export async function publishHighlight(text: string) {
+export async function publishHighlight(text: string, comment: string) {
   const [id, addr] = getIdAddr()
   const author = getAuthorPubkey()
   console.log('id', id, 'addr', addr, 'author', author)
@@ -264,7 +264,36 @@ export async function publishHighlight(text: string) {
   if (id) event.tags.push(['e', id, getTagRelay()])
   else event.tags.push(['a', addr, getTagRelay()])
 
+  if (comment) event.tags.push(['comment', comment])
+
   // NDK will auto-parse the nostr: links and #hashtags
+  return publish(event)
+}
+
+export async function publishReply(text: string) {
+  const [id, addr] = getIdAddr()
+  const author = getAuthorPubkey()
+  console.log('id', id, 'addr', addr, 'author', author)
+  if (!id && !addr) throw new Error('No id/addr')
+  if (!author) throw new Error('No author')
+
+  // @ts-ignore
+  const pubkey = await window.nostr.getPublicKey()
+
+  // template
+  const event = {
+    kind: 1,
+    content: text,
+    pubkey,
+    created_at: Math.floor(Date.now() / 1000),
+    tags: [
+      ['p', author],
+      ['r', getRef()],
+    ],
+  }
+  if (id) event.tags.push(['e', id, getTagRelay(), 'root'])
+  else event.tags.push(['a', addr, getTagRelay(), 'root'])
+
   return publish(event)
 }
 

@@ -27,6 +27,7 @@ import {
   publishHighlight,
   publishNote,
   publishReaction,
+  publishReply,
 } from './utils/helpers'
 
 import 'emoji-picker-element'
@@ -57,16 +58,21 @@ export class NostrContentCta extends LitElement {
   @property({ attribute: false }) mainAction: ItemAction = DEFAULT_MAIN_ACTION
   @property({ attribute: NPUB_ATTR }) npub: string = ''
 
-  @state() actionsModalOpen = false
-  @state() showEmojiPicker = false
-  @state() showShareOptions = false
-  @state() appsModalOpen = false
-  @state() ready = false
+  @state() private actionsModalOpen = false
+  @state() private showEmojiPicker = false
+  @state() private showShareOptions = false
+  @state() private appsModalOpen = false
+  @state() private nostrShareModalOpen = false
+  @state() private ready = false
   @state() private updateTrigger: number = 0
   @state() private loading: LoadingState = ''
   @state() private completion: CompletionState = ''
   @state() private authorName: string = ''
   @state() private authorAvatar: string = ''
+
+  @state() private nostrText: string = ''
+  @state() private highlightText: string = ''
+  @state() private nostrReply = false
 
   pluginEndpoint: any | undefined = undefined
 
@@ -105,6 +111,15 @@ export class NostrContentCta extends LitElement {
       })
       this.pluginEndpoint.subscribe('action-bookmark', () => {
         this._handleBookmark()
+      })
+      this.pluginEndpoint.subscribe('action-quote', (text: string) => {
+        this._handleSelectionChange('quote', text)
+      })
+      this.pluginEndpoint.subscribe('action-highlight', (text: string) => {
+        this._handleSelectionChange('highlight', text)
+      })
+      this.pluginEndpoint.subscribe('action-comment', (text: string) => {
+        this._handleSelectionChange('comment', text)
       })
 
       console.log('content-cta ready')
@@ -160,12 +175,49 @@ export class NostrContentCta extends LitElement {
     this.completion = ''
   }
 
+  private _handleCloseNostrShareModal() {
+    this.nostrShareModalOpen = false
+  }
+
+  private _handleShowNostrShareModal() {
+    this.nostrShareModalOpen = true
+  }
+
+  private _handleSelectionChange(type: string, text: string) {
+    if (type === 'quote') {
+      this._initNostrText() // reset
+      // prepend the quote
+      this.nostrText = '> ' + text + '\n' + this.nostrText
+      this.highlightText = '' // reset
+      this.nostrReply = false
+    } else if (type === 'comment') {
+      // quote
+      this.nostrText = '> ' + text + '\n'
+      this.highlightText = '' // reset
+      this.nostrReply = true
+    } else if (type === 'highlight') {
+      this.nostrText = '' // clear, it's optional
+      this.highlightText = text
+      this.nostrReply = false
+    }
+
+    // doesn't work in sync way
+    setTimeout(() => {
+      this._handleShowNostrShareModal()
+    }, 0)
+  }
+
   private _handleCloseModal() {
     this._handleCloseActionsModal()
     this._handleCloseAppsModal()
     this._handleCloseEmojiPicker()
     this._handleCloseShareOptions()
     this._handleCloseCompletionModal()
+    this._handleCloseNostrShareModal()
+  }
+
+  private _onSelectionAction(type: string, text: string) {
+    this.pluginEndpoint?.dispatch(`action-${type}`, text)
   }
 
   private _handleButtonClick(type: string) {
@@ -199,10 +251,21 @@ export class NostrContentCta extends LitElement {
     }
   }
 
-  private async _publishHighlight(text: string) {
+  private async _publishHighlight(text: string, comment: string) {
     try {
       this.loading = 'highlight'
-      const nostrEvent = await publishHighlight(text)
+      const nostrEvent = await publishHighlight(text, comment)
+      this.pluginEndpoint?.dispatch('event-published', nostrEvent)
+      this.loading = ''
+    } catch {
+      this.loading = ''
+    }
+  }
+
+  private async _publishReply(text: string) {
+    try {
+      this.loading = 'note'
+      const nostrEvent = await publishReply(text)
       this.pluginEndpoint?.dispatch('event-published', nostrEvent)
       this.loading = ''
     } catch {
@@ -240,6 +303,33 @@ export class NostrContentCta extends LitElement {
     }
   }
 
+  private _handleShareNostr() {
+    this._initNostrText() // reset
+    this.highlightText = '' // clear
+    return this._handleShowNostrShareModal()
+  }
+
+  private _initNostrText() {
+    // @ts-ignore
+    const nostrSite: any = window.nostrSite
+    if (!nostrSite) return
+
+    const id = document.querySelector('meta[name="nostr:id"]')?.getAttribute('content') || ''
+    const nip19 = nostrSite.nostrTools.nip19
+    const renderer = nostrSite.renderer
+    const site = renderer.getSite()
+    const relay = site.contributor_relays && site.contributor_relays.length ? site.contributor_relays[0] : ''
+
+    let text = id
+    if (relay) {
+      const { type, data } = nip19.decode(id)
+      if (type === 'note') text = nip19.neventEncode({ id: data, relays: [relay] })
+      else if (type === 'naddr') text = nip19.naddrEncode({ ...data, relays: [relay] })
+    }
+    console.log('text', text, id, relay)
+    this.nostrText = `\nnostr:${text}`
+  }
+
   private isCompletion() {
     return !!this.getCompletionText()
   }
@@ -265,7 +355,7 @@ export class NostrContentCta extends LitElement {
     if (!this.actionsModalOpen || this.appsModalOpen || this.showEmojiPicker || this.showShareOptions) return nothing
 
     return html`
-      <np-content-cta-modal @close-modal=${this._handleCloseModal} .title=${'Actions'}>
+      <np-content-cta-modal @close-modal=${this._handleCloseModal.bind(this)} .title=${'Actions'}>
         <div class="flex flex-col gap-[8px]">
           ${this.actions.map((action) => {
             return html` <button
@@ -316,7 +406,7 @@ export class NostrContentCta extends LitElement {
           </button>
           <button
             class="p-[8px] hover:bg-slate-50 rounded-[5px] transition-colors active:bg-slate-100 "
-            @click=${this._handleOpenActionsModal}
+            @click=${this._handleOpenActionsModal.bind(this)}
           >
             ${Icons.Dots}
           </button>
@@ -325,21 +415,20 @@ export class NostrContentCta extends LitElement {
 
       ${this.renderActionsModal()}
 
-      <np-content-cta-modal-apps @close-modal=${this._handleCloseModal} .open=${this.appsModalOpen}>
+      <np-content-cta-modal-apps @close-modal=${this._handleCloseModal.bind(this)} .open=${this.appsModalOpen}>
       </np-content-cta-modal-apps>
 
       <np-content-cta-modal-emoji
-        @close-modal=${this._handleCloseModal}
+        @close-modal=${this._handleCloseModal.bind(this)}
         .open=${this.showEmojiPicker}
         .publish=${this._publishReaction.bind(this)}
       >
       </np-content-cta-modal-emoji>
 
       <np-content-cta-modal-share-apps
-        @close-modal=${this._handleCloseModal}
+        @close-modal=${this._handleCloseModal.bind(this)}
         .open=${this.showShareOptions}
-        .publishNote=${this._publishNote.bind(this)}
-        .publishHighlight=${this._publishHighlight.bind(this)}
+        .onShareNostr=${this._handleShareNostr.bind(this)}
         .accent=${this.buttonColor}
         .ready=${this.ready}
         .openModal=${this._handleShowShareOptions.bind(this)}
@@ -349,7 +438,7 @@ export class NostrContentCta extends LitElement {
       <np-content-cta-modal-loading .open=${!!this.loading} .loading=${this.loading}></np-content-cta-modal-loading>
 
       <np-content-cta-modal-completion
-        @close-modal=${this._handleCloseCompletionModal}
+        @close-modal=${this._handleCloseModal.bind(this)}
         .open=${this.isCompletion()}
         .title=${this.authorName}
         .avatar=${this.authorAvatar}
@@ -357,7 +446,20 @@ export class NostrContentCta extends LitElement {
         .buttonText=${'Continue'}
       ></np-content-cta-modal-completion>
 
-      <np-content-cta-selection></np-content-cta-selection>
+      <np-content-cta-modal-nostr-share
+        @close-modal=${this._handleCloseModal.bind(this)}
+        .open=${this.nostrShareModalOpen}
+        .publishNote=${this._publishNote.bind(this)}
+        .publishReply=${this._publishReply.bind(this)}
+        .publishHighlight=${this._publishHighlight.bind(this)}
+        .text=${this.nostrText}
+        .reply=${this.nostrReply}
+        .accent=${this.buttonColor}
+        .highlightText=${this.highlightText}
+      >
+      </np-content-cta-modal-nostr-share>
+
+      <np-content-cta-selection .onAction=${this._onSelectionAction.bind(this)}></np-content-cta-selection>
     `
   }
 }

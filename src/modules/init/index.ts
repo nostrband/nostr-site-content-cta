@@ -8,14 +8,8 @@ function loadFonts() {
   document.head.appendChild(link)
 }
 
-function injectSelectionElement() {
-  const element = document.createElement('np-content-cta-selection') as ContentSelection
-  document.body.append(element)
-}
-
 function init() {
   loadFonts()
-  injectSelectionElement()
 }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init)

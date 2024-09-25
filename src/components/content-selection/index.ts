@@ -1,5 +1,5 @@
 import { css, html, LitElement } from 'lit'
-import { customElement, query, state } from 'lit/decorators.js'
+import { customElement, property, query, state } from 'lit/decorators.js'
 import { TWStyles } from '../../modules/tw/twlit'
 import { Icons } from '../../assets/icons'
 
@@ -13,6 +13,8 @@ export class ContentSelection extends LitElement {
     `,
     TWStyles,
   ]
+
+  @property() onAction?: ((type: string, text: string) => void)
 
   @state() selectedText = ''
   @state() debounceTimer?: number
@@ -97,26 +99,21 @@ export class ContentSelection extends LitElement {
     this.popup.style.display = 'none'
   }
 
-  private _handleQuoteText = () => {
-    this.dispatchEvent(
-      new CustomEvent('selection-nostr', {
-        detail: { text: this.selectedText, type: 'quote' },
-        bubbles: true,
-        composed: true,
-      })
-    )
+  private _handleText = (type: 'quote' | 'highlight' | 'comment') => {
+    this.onAction!(type, this.selectedText);
     this._hidePopupMenu()
   }
 
+  private _handleQuoteText = () => {
+    this._handleText('quote')
+  }
+
   private _handleHighlightText = () => {
-    this.dispatchEvent(
-      new CustomEvent('selection-nostr', {
-        detail: { text: this.selectedText, type: 'highlight' },
-        bubbles: true,
-        composed: true,
-      })
-    )
-    this._hidePopupMenu()
+    this._handleText('highlight')
+  }
+
+  private _handleCommentText = () => {
+    this._handleText('comment')
   }
 
   render() {
@@ -125,6 +122,13 @@ export class ContentSelection extends LitElement {
         class="my-[2px] ml-[4px] mr-[8px] p-[12px] absolute hidden bg-white shadow-md  rounded-[10px] flex-col gap-[8px] !z-[9999999]"
         id="np-content-selection-popup"
       >
+        <button
+          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-center gap-[8px] items-center text-[14px] text-black"
+          @click="${this._handleCommentText}"
+        >
+          ${Icons.Quotes} Comment
+        </button>
+
         <button
           class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-center gap-[8px] items-center text-[14px] text-black"
           @click="${this._handleQuoteText}"
