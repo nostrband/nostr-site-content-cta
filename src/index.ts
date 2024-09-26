@@ -1,5 +1,5 @@
 import { LitElement, css, html, nothing } from 'lit'
-import { customElement, property, state } from 'lit/decorators.js'
+import { customElement, property, query, state } from 'lit/decorators.js'
 import { TWStyles } from './modules/tw/twlit'
 
 import { Icons } from './assets/icons'
@@ -32,6 +32,7 @@ import {
 
 import 'emoji-picker-element'
 import './components'
+import { ContentSelection } from './components'
 
 async function waitNostrSite() {
   // @ts-ignore
@@ -121,6 +122,9 @@ export class NostrContentCta extends LitElement {
       this.pluginEndpoint.subscribe('action-comment', (text: string) => {
         this._handleSelectionChange('comment', text)
       })
+
+      ;(document.querySelector('np-content-cta-selection') as ContentSelection).onAction =
+        this._handleSelectionChange.bind(this)
 
       console.log('content-cta ready')
       this.ready = true
@@ -449,9 +453,8 @@ export class NostrContentCta extends LitElement {
         .highlightText=${this.highlightText}
       >
       </np-content-cta-modal-nostr-share>
-
-      <np-content-cta-selection .onAction=${this._onSelectionAction.bind(this)}></np-content-cta-selection>
     `
+    // <np-content-cta-selection .onAction=${this._onSelectionAction.bind(this)}></np-content-cta-selection>
   }
 }
 
