@@ -74,7 +74,9 @@ export class MainCta extends LitElement {
       ${this.inView
         ? nothing
         : html`<div class="fixed w-full left-0 bottom-[8px] animate-slide-in-bottom">
-            <div class="mx-auto w-1/2 max-md:w-full max-md:px-[8px]">
+            <div
+              class="mx-auto w-1/2 max-md:w-full max-md:px-[8px] bg-gray-50 bg-opacity-90 border-gray-100 border-[1px] p-[6px] rounded-[8px] shadow-sm"
+            >
               <div class="w-full flex align-middle gap-[12px]">
                 <button
                   class=" w-full border-2 rounded-[5px] p-[6px] hover:opacity-95 active:opacity-85 transition-opacity flex justify-center gap-[8px] items-center"
@@ -85,7 +87,7 @@ export class MainCta extends LitElement {
                   ${this.mainAction.label}
                 </button>
                 <button
-                  class="p-[8px] hover:bg-slate-50 rounded-[5px] transition-colors active:bg-slate-100 "
+                  class="p-[8px] rounded-full bg-neutral-200 border-gray-300 border-[1px] bg-opacity-80 hover:bg-opacity-100"
                   @click=${this._handleDotsClick}
                 >
                   ${Icons.Dots}
