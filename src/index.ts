@@ -17,6 +17,7 @@ import {
   DEFAULT_BUTTON_TEXT_COLOR,
   DEFAULT_MAIN_ACTION,
   NPUB_ATTR,
+  SELECTION_ACTIONS,
 } from './utils/const'
 import {
   getAuthorPubkey,
@@ -56,6 +57,7 @@ export class NostrContentCta extends LitElement {
   @property({ attribute: false }) buttonColor = DEFAULT_BUTTON_COLOR
   @property({ attribute: false }) buttonTextColor = DEFAULT_BUTTON_TEXT_COLOR
   @property({ attribute: false }) actions: ItemAction[] = []
+  @property({ attribute: false }) selectionActions: ItemAction[] = []
   @property({ attribute: false }) mainAction: ItemAction = DEFAULT_MAIN_ACTION
   @property({ attribute: NPUB_ATTR }) npub: string = ''
 
@@ -85,7 +87,10 @@ export class NostrContentCta extends LitElement {
     this.mainAction = ACTIONS[mainAction]
 
     const actions = this.getAttribute(CTA_LIST_ATTR) || Object.keys(ACTIONS).join(',')
-    this.actions = prepareActionsList(actions, mainAction)
+    this.actions = prepareActionsList(actions, ACTIONS, mainAction)
+
+    const selectionActions = this.getAttribute(CTA_LIST_ATTR) || Object.keys(SELECTION_ACTIONS).join(',')
+    this.selectionActions = prepareActionsList(selectionActions, SELECTION_ACTIONS)
 
     this.buttonColor = this.getAttribute(BUTTON_COLOR_ATTR) || DEFAULT_BUTTON_COLOR
     this.buttonTextColor = this.getAttribute(BUTTON_TEXT_COLOR_ATTR) || DEFAULT_BUTTON_TEXT_COLOR
@@ -122,11 +127,12 @@ export class NostrContentCta extends LitElement {
       this.pluginEndpoint.subscribe('action-comment', (text: string) => {
         this._handleSelectionChange('comment', text)
       })
+      
+      const selection = (document.querySelector('np-content-cta-selection') as ContentSelection)!;
+      selection.onAction = this._handleSelectionChange.bind(this)
+      selection.actions = this.selectionActions;
 
-      ;(document.querySelector('np-content-cta-selection') as ContentSelection).onAction =
-        this._handleSelectionChange.bind(this)
-
-      console.log('content-cta ready')
+      console.log('content-cta ready', this.actions, this.selectionActions)
       this.ready = true
 
       // @ts-ignore

@@ -1,20 +1,21 @@
-import { ACTIONS } from './const'
 import { CompletionState, ItemAction } from './types'
 
 const userRelaysCache = new Map<string, string[]>()
 
-export const prepareActionsList = (actions: string, mainActionKey: string) => {
+export const prepareActionsList = (actions: string, ACTIONS: Record<string, ItemAction>, mainActionKey?: string) => {
   const actionsList = actions.split(',')
   const modalActions = actionsList
     .map((key) => {
-      if (key === mainActionKey) return
+      if (mainActionKey && key === mainActionKey) return
       return ACTIONS[key]
     })
     .filter(Boolean) as ItemAction[]
 
-  const mainAction = ACTIONS[mainActionKey]
+  if (mainActionKey) {
+    const mainAction = ACTIONS[mainActionKey]
+    if (mainAction) return [mainAction, ...modalActions]  
+  }
 
-  if (mainAction) return [mainAction, ...modalActions]
   return modalActions
 }
 
