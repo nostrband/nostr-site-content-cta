@@ -35,13 +35,15 @@ export class ModalReaction extends LitElement {
     this.profiles = profiles
   }
 
-  async firstUpdated() {
-    try {
-      this.loading = true
-      await this.loadData()
-      this.loading = false
-    } catch {
-      this.loading = false
+  async updated(changedProperties: { has: (args: string) => any }) {
+    if (changedProperties.has('reaction') && this.reaction) {
+      try {
+        this.loading = true
+        await this.loadData()
+        this.loading = false
+      } catch {
+        this.loading = false
+      }
     }
   }
 
