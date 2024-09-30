@@ -11,7 +11,7 @@ function loadFonts() {
 function injectSelectionElement() {
   // this one must be a child of the 'body'
   const element = document.createElement('np-content-cta-selection') as ContentSelection
-  document.body.append(element)
+  if (document.body) document.body.append(element)
 }
 
 function init() {
@@ -23,7 +23,7 @@ function init() {
 // be too late before the index.ts starts executing
 // if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init)
 // else init()
-init();
+init()
 
 // // Handle functions
 // const openAppsModal = (id: string, kind: number, userPubkey: string) => {

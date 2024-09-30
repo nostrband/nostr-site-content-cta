@@ -20,6 +20,7 @@ export class Modal extends LitElement {
 
   private _handleCloseModal() {
     this.dispatchEvent(new Event(`close-modal`))
+    document.body.style.overflow = 'initial'
   }
   private _handleBackdrop(e: Event) {
     if (e.target === this.dialog) this._handleCloseModal()
@@ -28,6 +29,7 @@ export class Modal extends LitElement {
   updated() {
     if (!this.dialog) return
     this.dialog.showModal()
+    document.body.style.overflow = 'hidden'
   }
 
   render() {

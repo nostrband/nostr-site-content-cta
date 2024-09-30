@@ -4,13 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Nostr Site Content CTA</title>
-    <script src="./dist/index.js"></script>
     <style>
       /* html {
         font-size: 10px;
       } */
       div#test {
-        padding-bottom: 300%;
+        padding-bottom: 100%;
       }
     </style>
   </head>
@@ -156,13 +155,14 @@
       </p>
     </np-content>
 
-    <br />
+    <!-- <br /> -->
 
-    <button id="target">Open apps modal</button>
-    <button id="target2">Open login modal</button>
-    <script>
+    <!-- <button id="target">Open apps modal</button> -->
+    <!-- <button id="target2">Open login modal</button> -->
+    <!-- <script>
       const targetButtonApps = document.getElementById('target')
       targetButtonApps.onclick = () => {
+        console.log(window.NostrContent)
         window.NostrContent.openAppsModal()
       }
 
@@ -170,6 +170,7 @@
       targetButtonLogin.onclick = () => {
         window.NostrContent.openLoginModal()
       }
-    </script>
+    </script> -->
+    <script src="./dist/index.js"></script>
   </body>
 </html>

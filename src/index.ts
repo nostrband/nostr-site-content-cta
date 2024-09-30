@@ -2,8 +2,6 @@ import { LitElement, css, html, nothing } from 'lit'
 import { customElement, property, query, state } from 'lit/decorators.js'
 import { TWStyles } from './modules/tw/twlit'
 
-import { Icons } from './assets/icons'
-
 import { EmojiClickEvent } from 'emoji-picker-element/shared'
 import { CompletionState, ItemAction, LoadingState } from './utils/types'
 
@@ -122,7 +120,6 @@ export class NostrContentCta extends LitElement {
       this.pluginEndpoint.subscribe('action-comment', (text: string) => {
         this._handleSelectionChange('comment', text)
       })
-
       ;(document.querySelector('np-content-cta-selection') as ContentSelection).onAction =
         this._handleSelectionChange.bind(this)
 
@@ -355,6 +352,10 @@ export class NostrContentCta extends LitElement {
     }
   }
 
+  private _handleDispatchZap() {
+    this.pluginEndpoint?.dispatch(`action-zap`)
+  }
+
   renderActionsModal() {
     if (!this.actionsModalOpen || this.appsModalOpen || this.showEmojiPicker || this.showShareOptions) return nothing
 
@@ -386,14 +387,15 @@ export class NostrContentCta extends LitElement {
     return html`
       <div class="w-full flex flex-col gap-[8px]">
         <np-content-cta-zaps
-          .ready=${this.ready}
+          .ready=${this.ready || true}
           .npub=${this.npub}
           .accent=${this.buttonColor}
           .updateTrigger=${this.updateTrigger}
+          .dispatchZap=${this._handleDispatchZap}
         ></np-content-cta-zaps>
 
         <np-content-cta-reactions
-          .ready=${this.ready}
+          .ready=${this.ready || true}
           .npub=${this.npub}
           .accent=${this.buttonColor}
           .updateTrigger=${this.updateTrigger}
@@ -454,7 +456,6 @@ export class NostrContentCta extends LitElement {
       >
       </np-content-cta-modal-nostr-share>
     `
-    // <np-content-cta-selection .onAction=${this._onSelectionAction.bind(this)}></np-content-cta-selection>
   }
 }
 
