@@ -2,6 +2,7 @@ import { css, html, LitElement } from 'lit'
 import { customElement, property, query, state } from 'lit/decorators.js'
 import { TWStyles } from '../../modules/tw/twlit'
 import { Icons } from '../../assets/icons'
+import { ItemAction } from '../../utils/types'
 
 @customElement('np-content-cta-selection')
 export class ContentSelection extends LitElement {
@@ -15,6 +16,7 @@ export class ContentSelection extends LitElement {
   ]
 
   @property() onAction?: (type: string, text: string) => void
+  @property({ attribute: false }) actions: ItemAction[] = []
 
   @state() selectedText = ''
   @state() debounceTimer?: number
@@ -39,6 +41,8 @@ export class ContentSelection extends LitElement {
   }
 
   private _handleSelectionChange = () => {
+    if (!this.actions.length) return;
+
     const selection = window.getSelection()
     if (!selection) return
 
@@ -99,21 +103,9 @@ export class ContentSelection extends LitElement {
     this.popup.style.display = 'none'
   }
 
-  private _handleText = (type: 'quote' | 'highlight' | 'comment') => {
+  private _handleText = (type: string) => {
     this.onAction!(type, this.selectedText)
     this._hidePopupMenu()
-  }
-
-  private _handleQuoteText = () => {
-    this._handleText('quote')
-  }
-
-  private _handleHighlightText = () => {
-    this._handleText('highlight')
-  }
-
-  private _handleCommentText = () => {
-    this._handleText('comment')
   }
 
   render() {
@@ -122,29 +114,17 @@ export class ContentSelection extends LitElement {
         class="my-[2px] ml-[4px] mr-[8px] p-[12px] absolute hidden bg-white shadow-md  rounded-[10px] flex-col gap-[8px] !z-[9999999]"
         id="np-content-selection-popup"
       >
-        <button
-          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-start gap-[8px] items-center"
-          @click="${this._handleCommentText}"
-        >
-          ${Icons.Comment}
-          <span class="flex-grow text-left text-[14px] text-black">Comment</span>
-        </button>
-
-        <button
-          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-start gap-[8px] items-center"
-          @click="${this._handleQuoteText}"
-        >
-          ${Icons.Quotes}
-          <span class="flex-grow text-left text-[14px] text-black">Quote</span>
-        </button>
-
-        <button
-          class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-start gap-[8px] items-center"
-          @click="${this._handleHighlightText}"
-        >
-          ${Icons.Highlight}
-          <span class="flex-grow text-left text-[14px] text-black">Highlight</span>
-        </button>
+        ${this.actions.map(
+          (a) => html`
+            <button
+              class="p-[8px] hover:bg-slate-50 rounded-[2px] transition-colors active:bg-slate-100 border-[1px] flex justify-start gap-[8px] items-center"
+              @click="${() => this._handleText(a.value)}"
+            >
+              ${a.icon}
+              <span class="flex-grow text-left text-[14px] text-black">${a.label}</span>
+            </button>
+          `
+        )}
       </div>
     `
   }

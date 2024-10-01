@@ -34,6 +34,24 @@ const ACTIONS: Record<string, ItemAction> = {
   },
 }
 
+const SELECTION_ACTIONS: Record<string, ItemAction> = {
+  comment: {
+    value: 'comment',
+    label: 'Comment',
+    icon: Icons.Comment,
+  },
+  quote: {
+    value: 'quote',
+    label: 'Quote',
+    icon: Icons.Quotes,
+  },
+  highlight: {
+    value: 'highlight',
+    label: 'Highlight',
+    icon: Icons.Highlight,
+  },
+}
+
 const APPS: IShareApp[] = [
   {
     id: 'nostr',
@@ -96,6 +114,7 @@ export {
   DEFAULT_BUTTON_TEXT_COLOR,
   DEFAULT_MAIN_ACTION,
   ACTIONS,
+  SELECTION_ACTIONS,
   NPUB_ATTR,
   APPS,
 }
