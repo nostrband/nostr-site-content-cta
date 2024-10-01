@@ -387,7 +387,7 @@ export class NostrContentCta extends LitElement {
     return html`
       <div class="w-full flex flex-col gap-[8px]">
         <np-content-cta-zaps
-          .ready=${this.ready || true}
+          .ready=${this.ready}
           .npub=${this.npub}
           .accent=${this.buttonColor}
           .updateTrigger=${this.updateTrigger}
@@ -395,7 +395,7 @@ export class NostrContentCta extends LitElement {
         ></np-content-cta-zaps>
 
         <np-content-cta-reactions
-          .ready=${this.ready || true}
+          .ready=${this.ready}
           .npub=${this.npub}
           .accent=${this.buttonColor}
           .updateTrigger=${this.updateTrigger}

@@ -50,10 +50,17 @@ export class ModalReaction extends LitElement {
   private _getProfilePicture(picture: string, name: string) {
     const username = name || 'User'
     if (!picture) return Icons.Profile
-    return html`<img alt="${username}" src="${picture}" class="rounded-full h-[24px] w-[24px]" />`
+    return html`<img alt="${username}" src="${picture}" class="rounded-full h-[24px] w-[24px] object-cover" />`
   }
 
   private _handlePostReaction() {}
+
+  private _getProfileInfo(profile: any) {
+    return {
+      name: profile.profile?.display_name || profile.profile?.name || '',
+      picture: profile.profile?.picture || '',
+    }
+  }
 
   render() {
     if (!this.open || !this.reaction) return nothing
@@ -69,20 +76,21 @@ export class ModalReaction extends LitElement {
                 <p class="text-[15px]">Users:</p>
                 <div class="flex flex-col gap-[8px] max-h-[400px] overflow-auto w-full">
                   ${this.profiles.map((profile) => {
+                    const { name, picture } = this._getProfileInfo(profile)
                     return html`<div
                       class="flex items-center gap-[8px] p-[8px] rounded-[5px] bg-gray-50 hover:bg-gray-100"
                     >
-                      <span title="${profile.name}" class="h-[24px] w-[24px] inline-block">
-                        ${this._getProfilePicture(profile.picture, profile.name)}
+                      <span title="${name}" class="h-[24px] w-[24px] inline-block">
+                        ${this._getProfilePicture(picture, name)}
                       </span>
-                      <h2 class="text-lg font-medium leading-tight text-neutral-900 truncate">${profile.name}</h2>
+                      <h2 class="text-[16px] font-medium leading-tight text-neutral-900 truncate">${name}</h2>
                     </div>`
                   })}
                 </div>
               </div>`
             : html`<div class="flex items-center justify-center">${Icons.LoadingSpinner}</div>`}
           <button
-            class="w-full bg-sky-600 rounded-lg p-2 text-white hover:bg-sky-700 active:bg-sky-800 transition-colors"
+            class="w-full bg-sky-600 rounded-lg p-2 text-white hover:bg-sky-700 active:bg-sky-800 transition-colors flex items-center gap-[8px] justify-center"
             @click=${this._handlePostReaction}
           >
             Post ${this.reaction.icon} reaction

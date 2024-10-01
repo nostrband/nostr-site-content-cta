@@ -26,7 +26,7 @@ export class ModalZap extends LitElement {
   private _getProfilePicture(picture: string, name: string) {
     const username = name || 'User'
     if (!picture) return Icons.ProfileBig
-    return html`<img alt="${username}" src="${picture}" class="rounded-full h-[48px] w-[48px]" />`
+    return html`<img alt="${username}" src="${picture}" class="rounded-full h-[48px] w-[48px] object-cover" />`
   }
 
   private _handleZap() {
