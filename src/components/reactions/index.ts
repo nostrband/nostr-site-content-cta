@@ -75,6 +75,8 @@ export class Reactions extends LitElement {
   @property() accent = ''
   @property() updateTrigger = 0
   @property() reactions: Reaction[] = []
+  @property() dispatchLike: (text: string) => void = () => undefined
+
   @query('#reactions-scroll-container') scrollContainer?: HTMLDivElement | null
 
   @state() since = 0
@@ -103,10 +105,11 @@ export class Reactions extends LitElement {
       limit: 500,
       since: this.since + 1,
     }
-    if (id) filter['#e'] = [id]
-    else filter['#a'] = [addr]
+    const filters = [];
+    if (id) filters.push({ ...filter, '#e': [id] });
+    if (addr) filters.push({ ...filter, '#a': [addr] });
 
-    const events = await nostrSite.renderer.fetchEvents(filter, { relays: getAuthorRelays(), timeoutMs: 5000 })
+    const events = await nostrSite.renderer.fetchEvents(filters, { relays: getAuthorRelays(), timeoutMs: 10000 })
     console.log(Date.now(), 'content-cta reaction events since', this.since, [...events])
 
     let pubkey = ''
@@ -231,8 +234,10 @@ export class Reactions extends LitElement {
       </div>
       <np-content-cta-modal-reaction
         .open=${!!this.selectedReaction}
+        .accent=${this.accent}
         @close-modal=${this._handleCloseReactionModal}
         .reaction=${this.selectedReaction}
+        .dispatchLike=${this.dispatchLike}
       >
       </np-content-cta-modal-reaction>`
   }

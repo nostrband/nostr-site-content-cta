@@ -228,6 +228,7 @@ export class ModalApps extends LitElement {
         return html` <a
           href="${app.url}"
           target="_blank"
+          rel="noreferrer noopener"
           class="py-[12px] px-[8px] cursor-pointer flex items-center hover:bg-neutral-100"
         >
           <div

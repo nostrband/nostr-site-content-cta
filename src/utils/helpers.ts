@@ -13,7 +13,7 @@ export const prepareActionsList = (actions: string, ACTIONS: Record<string, Item
 
   if (mainActionKey) {
     const mainAction = ACTIONS[mainActionKey]
-    if (mainAction) return [mainAction, ...modalActions]  
+    if (mainAction) return [mainAction, ...modalActions]
   }
 
   return modalActions
@@ -38,13 +38,12 @@ function getNostrMeta(metaNostrName: string) {
   return undefined
 }
 
-export function getIdAddr() {
-  const eventId = getNostrMeta('id')
+function parseIdAddr(idAddr: string) {
   let id = ''
   let addr = ''
   try {
     // @ts-ignore
-    const { type, data } = window.nostrSite.nostrTools.nip19.decode(eventId)
+    const { type, data } = window.nostrSite.nostrTools.nip19.decode(idAddr)
     switch (type) {
       case 'note':
         id = data
@@ -57,7 +56,18 @@ export function getIdAddr() {
         break
     }
   } catch (e) {
-    console.log('content-cta bad event id', eventId)
+    console.log('content-cta bad event id', idAddr)
+  }
+  return [id, addr]
+}
+
+export function getIdAddr() {
+  const idAddr = getNostrMeta('id')
+  let [id, addr] = parseIdAddr(idAddr)
+
+  if (!id) {
+    const eventId = getNostrMeta('event_id')
+    ;[id] = parseIdAddr(eventId)
   }
 
   return [id, addr]
@@ -142,6 +152,12 @@ export async function publishReaction(emoji: string) {
   }
   if (id) event.tags.push(['e', id, getTagRelay()])
   else event.tags.push(['a', addr, getTagRelay()])
+
+  // custom emoji? url or data-url
+  if (emoji.startsWith("http") || emoji.startsWith("data")) {
+    event.content = ":custom:";
+    event.tags.push(['emoji', 'custom', emoji]);
+  }
 
   return publish(event)
 }

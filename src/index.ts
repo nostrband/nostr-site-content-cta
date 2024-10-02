@@ -224,9 +224,9 @@ export class NostrContentCta extends LitElement {
     this._handleCloseNostrShareModal()
   }
 
-  private _onSelectionAction(type: string, text: string) {
-    this.pluginEndpoint?.dispatch(`action-${type}`, text)
-  }
+  // private _onSelectionAction(type: string, text: string) {
+  //   this.pluginEndpoint?.dispatch(`action-${type}`, text)
+  // }
 
   private _handleButtonClick(type: string) {
     this.pluginEndpoint?.dispatch(`action-${type}`)
@@ -234,12 +234,10 @@ export class NostrContentCta extends LitElement {
     this.actionsModalOpen = false
   }
 
-  private async _publishReaction(event: EmojiClickEvent) {
-    if (!event.detail.unicode) return
-
+  private async _publishReaction(text: string) {
     try {
       this.loading = 'reaction'
-      const nostrEvent = await publishReaction(event.detail.unicode!)
+      const nostrEvent = await publishReaction(text)
       // a generalized way to notify nostr-site about the new relevant event
       this.pluginEndpoint?.dispatch('event-published', nostrEvent)
       this.loading = ''
@@ -359,8 +357,8 @@ export class NostrContentCta extends LitElement {
     }
   }
 
-  private _handleDispatchZap() {
-    this.pluginEndpoint?.dispatch(`action-zap`)
+  private _handleDispatchZap(amount: number) {
+    this.pluginEndpoint?.dispatch(`action-zap`, amount)
   }
 
   renderActionsModal() {
@@ -398,7 +396,7 @@ export class NostrContentCta extends LitElement {
           .npub=${this.npub}
           .accent=${this.buttonColor}
           .updateTrigger=${this.updateTrigger}
-          .dispatchZap=${this._handleDispatchZap}
+          .dispatchZap=${this._handleDispatchZap.bind(this)}
         ></np-content-cta-zaps>
 
         <np-content-cta-reactions
@@ -406,6 +404,7 @@ export class NostrContentCta extends LitElement {
           .npub=${this.npub}
           .accent=${this.buttonColor}
           .updateTrigger=${this.updateTrigger}
+          .dispatchLike=${this._publishReaction.bind(this)}
         ></np-content-cta-reactions>
 
         <np-content-main-cta

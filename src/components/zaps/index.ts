@@ -171,10 +171,11 @@ export class Zaps extends LitElement {
       limit: 500,
       since: this.since + 1,
     }
-    if (id) filter['#e'] = [id]
-    else filter['#a'] = [addr]
+    const filters = []
+    if (id) filters.push({ ...filter, '#e': [id] })
+    if (addr) filters.push({ ...filter, '#a': [addr] })
 
-    const events = await nostrSite.renderer.fetchEvents(filter, { relays: getAuthorRelays(), timeoutMs: 5000 })
+    const events = await nostrSite.renderer.fetchEvents(filters, { relays: getAuthorRelays(), timeoutMs: 10000 })
     console.log(Date.now(), 'content-cta zaps', events)
 
     // get zap authors and amounts
@@ -211,7 +212,7 @@ export class Zaps extends LitElement {
         pubkey,
         profile: {
           picture: '',
-          name: nostrSite.nostrTools.nip19.npubEncode(pubkey),
+          name: nostrSite.nostrTools.nip19.npubEncode(pubkey).substring(0, 10) + '...',
         },
         comment,
       })
@@ -318,6 +319,7 @@ export class Zaps extends LitElement {
         .open=${!!this.selectedZap}
         @close-modal=${this._handleCloseZapModal}
         .zap=${this.selectedZap}
+        .accent=${this.accent}
         .dispatchZap=${this.dispatchZap}
       ></np-content-cta-modal-zap> `
   }
