@@ -29,5 +29,5 @@ export interface Zap {
 }
 
 export type LoadingState = '' | 'follow' | 'share' | 'reaction' | 'note' | 'bookmark' | 'highlight'
-export type CompletionState = '' | 'follow' | 'share' | 'reaction' | 'note' | 'bookmark' | 'highlight'
+export type CompletionState = '' | 'follow' | 'share' | 'reaction' | 'note' | 'bookmark' | 'highlight' | 'zap'
 export type NostrSelectionDetails = { type: 'quote' | 'highlight' | 'comment'; text: string }

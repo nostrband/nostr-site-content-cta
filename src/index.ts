@@ -354,6 +354,8 @@ export class NostrContentCta extends LitElement {
         return 'Thank you for sharing!'
       case 'highlight':
         return 'Thank you for highlighting!'
+      case 'zap':
+        return 'Thank you for the zap!'
     }
   }
 

@@ -154,9 +154,9 @@ export async function publishReaction(emoji: string) {
   else event.tags.push(['a', addr, getTagRelay()])
 
   // custom emoji? url or data-url
-  if (emoji.startsWith("http") || emoji.startsWith("data")) {
-    event.content = ":custom:";
-    event.tags.push(['emoji', 'custom', emoji]);
+  if (emoji.startsWith('http') || emoji.startsWith('data')) {
+    event.content = ':custom:'
+    event.tags.push(['emoji', 'custom', emoji])
   }
 
   return publish(event)
@@ -327,6 +327,8 @@ export function getCompletionForEvent(e: any): CompletionState {
       return 'follow'
     case 9802:
       return 'highlight'
+    case 9735:
+      return 'zap'
     case 10003:
       return 'bookmark'
   }
