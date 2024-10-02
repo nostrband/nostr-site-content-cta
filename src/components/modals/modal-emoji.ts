@@ -17,15 +17,17 @@ export class ModalEmoji extends LitElement {
   ]
 
   @property() open = false
-  @property() publish?: (e: EmojiClickEvent) => Promise<void>
+  @property() publish?: (text: string) => Promise<void>
 
   private _handleClose() {
     this.dispatchEvent(new Event(`close-modal`))
   }
 
   private async _handleEmojiClick(event: EmojiClickEvent) {
+    if (!event.detail.unicode) return;
+
     this._handleClose()
-    if (this.publish) this.publish(event)
+    if (this.publish) this.publish(event.detail.unicode)
   }
 
   render() {

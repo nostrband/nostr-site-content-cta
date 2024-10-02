@@ -5,18 +5,7 @@ import { Icons } from '../../assets/icons'
 import { getIdAddr, getAuthorRelays } from '../../utils/helpers'
 // @ts-ignore
 import { decode as decodeBolt11 } from 'light-bolt11-decoder'
-
-interface Zap {
-  id: string
-  amount: number
-  pubkey: string
-  profile: {
-    picture: string
-    name: string
-  }
-  comment: string
-  accent?: boolean
-}
+import { Zap } from '../../utils/types'
 
 const ZAPS_MOCK_DATA: Zap[] = [
   {
@@ -148,10 +137,12 @@ export class Zaps extends LitElement {
   @property() accent = ''
   @property() updateTrigger = 0
   @property() zaps: Zap[] = []
+  @property() dispatchZap: () => void = () => undefined
   @query('#zaps-scroll-container') scrollContainer?: HTMLDivElement | null
 
   @state() since = 0
   @state() loading = false
+  @state() selectedZap: Zap | null = null
 
   private prepareZapsAmount(amount: number) {
     const formatter = Intl.NumberFormat('en', { notation: 'compact' })
@@ -180,10 +171,11 @@ export class Zaps extends LitElement {
       limit: 500,
       since: this.since + 1,
     }
-    if (id) filter['#e'] = [id]
-    else filter['#a'] = [addr]
+    const filters = []
+    if (id) filters.push({ ...filter, '#e': [id] })
+    if (addr) filters.push({ ...filter, '#a': [addr] })
 
-    const events = await nostrSite.renderer.fetchEvents(filter, { relays: getAuthorRelays(), timeoutMs: 5000 })
+    const events = await nostrSite.renderer.fetchEvents(filters, { relays: getAuthorRelays(), timeoutMs: 10000 })
     console.log(Date.now(), 'content-cta zaps', events)
 
     // get zap authors and amounts
@@ -220,7 +212,7 @@ export class Zaps extends LitElement {
         pubkey,
         profile: {
           picture: '',
-          name: nostrSite.nostrTools.nip19.npubEncode(pubkey),
+          name: nostrSite.nostrTools.nip19.npubEncode(pubkey).substring(0, 10) + '...',
         },
         comment,
       })
@@ -295,22 +287,40 @@ export class Zaps extends LitElement {
     return html`<img alt="${username}" src="${picture}" class="rounded-full h-[24px] w-[24px]" />`
   }
 
+  private _handleZapClick(zap: Zap) {
+    this.selectedZap = zap
+  }
+
+  private _handleCloseZapModal() {
+    this.selectedZap = null
+  }
+
   render() {
     return html`<div class="flex gap-[4px] overflow-auto scrollbar-hide" id="zaps-scroll-container">
-      ${this.zaps.map((zap) => {
-        return html`<div
-          class="flex items-center gap-[8px] py-[4px] ps-[8px] pe-[8px] rounded-[5px] border-[1px] border-gray-300 hover:bg-gray-100 cursor-pointer"
-          style="${zap.accent ? `border: 1px solid ${this.accent}` : ''}"
-        >
-          ${Icons.Zap}
-          <span class="text-[14px] font-medium text-nowrap">${this.prepareZapsAmount(zap.amount)}</span>
+        ${this.zaps.map((zap) => {
+          return html`<div
+            class="flex items-center gap-[8px] py-[4px] ps-[8px] pe-[8px] rounded-[5px] border-[1px] border-gray-300 hover:bg-gray-100 cursor-pointer"
+            style="${zap.accent ? `border: 1px solid ${this.accent}` : ''}"
+            @click=${() => this._handleZapClick(zap)}
+          >
+            ${Icons.Zap}
+            <span class="text-[14px] font-medium text-nowrap">${this.prepareZapsAmount(zap.amount)}</span>
 
-          <span title="${zap.profile.name}" class="h-[24px] w-[24px] inline-block">
-            ${this._getProfilePicture(zap.profile.picture, zap.profile.name)}
-          </span>
-          <p class="text-[14px] font-medium text-nowrap max-w-[200px] overflow-hidden text-ellipsis">${zap.comment}</p>
-        </div>`
-      })}
-    </div>`
+            <span title="${zap.profile.name}" class="h-[24px] w-[24px] inline-block">
+              ${this._getProfilePicture(zap.profile.picture, zap.profile.name)}
+            </span>
+            <p class="text-[14px] font-medium text-nowrap max-w-[200px] overflow-hidden text-ellipsis">
+              ${zap.comment}
+            </p>
+          </div>`
+        })}
+      </div>
+      <np-content-cta-modal-zap
+        .open=${!!this.selectedZap}
+        @close-modal=${this._handleCloseZapModal}
+        .zap=${this.selectedZap}
+        .accent=${this.accent}
+        .dispatchZap=${this.dispatchZap}
+      ></np-content-cta-modal-zap> `
   }
 }

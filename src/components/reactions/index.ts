@@ -2,14 +2,7 @@ import { css, html, LitElement } from 'lit'
 import { customElement, property, query, state } from 'lit/decorators.js'
 import { TWStyles } from '../../modules/tw/twlit'
 import { getIdAddr, getAuthorRelays } from '../../utils/helpers'
-
-interface Reaction {
-  id: string
-  icon: any
-  count: number
-  pubkeys?: string[]
-  accent?: boolean
-}
+import { Reaction } from '../../utils/types'
 
 const PLUS_REACTION = html`<svg viewBox="0 0 24 24" class="w-[20px] h-[20px]">
   <path
@@ -82,10 +75,13 @@ export class Reactions extends LitElement {
   @property() accent = ''
   @property() updateTrigger = 0
   @property() reactions: Reaction[] = []
+  @property() dispatchLike: (text: string) => void = () => undefined
+
   @query('#reactions-scroll-container') scrollContainer?: HTMLDivElement | null
 
   @state() since = 0
   @state() loading = false
+  @state() selectedReaction: Reaction | null = null
 
   async loadData() {
     // @ts-ignore
@@ -109,10 +105,11 @@ export class Reactions extends LitElement {
       limit: 500,
       since: this.since + 1,
     }
-    if (id) filter['#e'] = [id]
-    else filter['#a'] = [addr]
+    const filters = [];
+    if (id) filters.push({ ...filter, '#e': [id] });
+    if (addr) filters.push({ ...filter, '#a': [addr] });
 
-    const events = await nostrSite.renderer.fetchEvents(filter, { relays: getAuthorRelays(), timeoutMs: 5000 })
+    const events = await nostrSite.renderer.fetchEvents(filters, { relays: getAuthorRelays(), timeoutMs: 10000 })
     console.log(Date.now(), 'content-cta reaction events since', this.since, [...events])
 
     let pubkey = ''
@@ -213,19 +210,35 @@ export class Reactions extends LitElement {
       }
     }
   }
+  private _handleReactionClick(reaction: Reaction) {
+    this.selectedReaction = reaction
+  }
+
+  private _handleCloseReactionModal() {
+    this.selectedReaction = null
+  }
 
   render() {
-    return html`<div class="flex gap-[4px] overflow-auto scrollbar-hide" id="reactions-scroll-container">
-      ${this.reactions.map((reaction) => {
-        return html`<button
-          title="${reaction.id}${reaction.accent ? ' - your reaction' : ''}"
-          class="flex justify-center items-center gap-[8px] px-[12px] border-[1px] border-gray-300 hover:bg-gray-100 h-[32px] active:bg-gray-200 rounded-[5px] min-w-[60px] text-[14px]"
-          style="${reaction.accent ? `border: 1px solid ${this.accent}` : ''}"
-        >
-          <span class="text-nowrap">${reaction.icon}</span>
-          <span class="text-nowrap">${reaction.count}</span>
-        </button>`
-      })}
-    </div>`
+    return html` <div class="flex gap-[4px] overflow-auto scrollbar-hide" id="reactions-scroll-container">
+        ${this.reactions.map((reaction) => {
+          return html`<button
+            title="${reaction.id}${reaction.accent ? ' - your reaction' : ''}"
+            class="flex justify-center items-center gap-[8px] px-[12px] border-[1px] border-gray-300 hover:bg-gray-100 h-[32px] active:bg-gray-200 rounded-[5px] min-w-[60px] text-[14px]"
+            style="${reaction.accent ? `border: 1px solid ${this.accent}` : ''}"
+            @click=${() => this._handleReactionClick(reaction)}
+          >
+            <span class="text-nowrap">${reaction.icon}</span>
+            <span class="text-nowrap">${reaction.count}</span>
+          </button>`
+        })}
+      </div>
+      <np-content-cta-modal-reaction
+        .open=${!!this.selectedReaction}
+        .accent=${this.accent}
+        @close-modal=${this._handleCloseReactionModal}
+        .reaction=${this.selectedReaction}
+        .dispatchLike=${this.dispatchLike}
+      >
+      </np-content-cta-modal-reaction>`
   }
 }
