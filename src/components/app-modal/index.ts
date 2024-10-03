@@ -32,6 +32,11 @@ export class Modal extends LitElement {
     document.body.style.overflow = 'hidden'
   }
 
+  disconnectedCallback(): void {
+    super.disconnectedCallback()
+    document.body.style.overflow = 'initial'
+  }
+
   render() {
     return html`
       <dialog
