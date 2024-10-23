@@ -65,6 +65,7 @@ export function getIdAddr() {
   const idAddr = getNostrMeta('id')
   let [id, addr] = parseIdAddr(idAddr)
 
+  // ensure we have event id
   if (!id) {
     const eventId = getNostrMeta('event_id')
     ;[id] = parseIdAddr(eventId)
@@ -151,7 +152,7 @@ export async function publishReaction(emoji: string) {
     ],
   }
   if (id) event.tags.push(['e', id, getTagRelay()])
-  else event.tags.push(['a', addr, getTagRelay()])
+  if (addr) event.tags.push(['a', addr, getTagRelay()])
 
   // custom emoji? url or data-url
   if (emoji.startsWith('http') || emoji.startsWith('data')) {
@@ -251,7 +252,7 @@ export async function publishBookmark() {
   }
   if (!event.tags.find((t: string[]) => t.length >= 2 && t[1] === (id || addr))) {
     if (id) event.tags.push(['e', id, getTagRelay()])
-    else event.tags.push(['a', addr, getTagRelay()])
+    if (addr) event.tags.push(['a', addr, getTagRelay()])
   }
 
   return publish(event)
@@ -279,7 +280,7 @@ export async function publishHighlight(text: string, comment: string) {
     ],
   }
   if (id) event.tags.push(['e', id, getTagRelay()])
-  else event.tags.push(['a', addr, getTagRelay()])
+  if (addr) event.tags.push(['a', addr, getTagRelay()])
 
   if (comment) event.tags.push(['comment', comment])
 
@@ -309,7 +310,7 @@ export async function publishReply(text: string) {
     ],
   }
   if (id) event.tags.push(['e', id, getTagRelay(), 'root'])
-  else event.tags.push(['a', addr, getTagRelay(), 'root'])
+  if (addr) event.tags.push(['a', addr, getTagRelay(), 'root'])
 
   return publish(event)
 }
