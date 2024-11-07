@@ -32,6 +32,11 @@ const ACTIONS: Record<string, ItemAction> = {
     label: 'Open with',
     icon: Icons.LinkOut,
   },
+  message: {
+    value: 'dm',
+    label: 'Send message',
+    icon: Icons.Message,
+  },
 }
 
 const SELECTION_ACTIONS: Record<string, ItemAction> = {
