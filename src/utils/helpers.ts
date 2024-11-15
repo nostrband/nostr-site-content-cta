@@ -121,6 +121,10 @@ function getRef() {
   return window.location.origin + window.location.pathname + window.location.search
 }
 
+function getClient() {
+  return window.location.origin;
+}
+
 function getTagRelay() {
   // @ts-ignore
   const renderer = window.nostrSite.renderer
@@ -149,6 +153,7 @@ export async function publishReaction(emoji: string) {
     tags: [
       ['p', author],
       ['r', getRef()],
+      ['client', getClient()],
     ],
   }
   if (id) event.tags.push(['e', id, getTagRelay()])
@@ -177,6 +182,7 @@ export async function publishNote(text: string) {
     tags: [
       ['p', author],
       ['r', getRef()],
+      ['client', getClient()],
     ],
   }
 
@@ -277,6 +283,7 @@ export async function publishHighlight(text: string, comment: string) {
     tags: [
       ['p', author],
       ['r', getRef()],
+      ['client', getClient()],
     ],
   }
   if (id) event.tags.push(['e', id, getTagRelay()])
@@ -307,6 +314,7 @@ export async function publishReply(text: string) {
     tags: [
       ['p', author],
       ['r', getRef()],
+      ['client', getClient()],
     ],
   }
   if (id) event.tags.push(['e', id, getTagRelay(), 'root'])
