@@ -32,7 +32,7 @@ const ACTIONS: Record<string, ItemAction> = {
     label: 'Open with',
     icon: Icons.LinkOut,
   },
-  message: {
+  dm: {
     value: 'dm',
     label: 'Send message',
     icon: Icons.Message,
