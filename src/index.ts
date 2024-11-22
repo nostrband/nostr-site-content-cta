@@ -95,6 +95,15 @@ export class NostrContentCta extends LitElement {
 
     waitNostrSite().then((ep) => {
       this.pluginEndpoint = ep
+
+      // @ts-ignore
+      this.user = window.nostrSite.user()?.pubkey;
+      this.pluginEndpoint.subscribe('auth', (info: { type: string, pubkey: string}) => {
+        console.log("content-cta auth", info);
+        // @ts-ignore
+        this.npub = window.nostrSite.nostrTools.nip19.npubEncode(info.pubkey);
+      });
+
       this.pluginEndpoint.subscribe('action-open-with', () => {
         this._handleOpenAppsModal()
       })
