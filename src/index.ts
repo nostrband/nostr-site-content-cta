@@ -98,10 +98,10 @@ export class NostrContentCta extends LitElement {
 
       // @ts-ignore
       this.user = window.nostrSite.user()?.pubkey;
-      this.pluginEndpoint.subscribe('auth', (info: { type: string, pubkey: string}) => {
+      this.pluginEndpoint.subscribe('auth', (info: { type: string, pubkey?: string}) => {
         console.log("content-cta auth", info);
         // @ts-ignore
-        this.npub = window.nostrSite.nostrTools.nip19.npubEncode(info.pubkey);
+        this.npub = info.pubkey ? window.nostrSite.nostrTools.nip19.npubEncode(info.pubkey) : '';
       });
 
       this.pluginEndpoint.subscribe('action-open-with', () => {
