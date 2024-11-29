@@ -2,7 +2,7 @@ import { css, html, LitElement } from 'lit'
 import { customElement, property, query, state } from 'lit/decorators.js'
 import { TWStyles } from '../../modules/tw/twlit'
 import { Icons } from '../../assets/icons'
-import { getIdAddr, getAuthorRelays } from '../../utils/helpers'
+import { getReadRelays } from '../../utils/helpers'
 // @ts-ignore
 import { decode as decodeBolt11 } from 'light-bolt11-decoder'
 import { Zap } from '../../utils/types'
@@ -133,7 +133,10 @@ export class Zaps extends LitElement {
   ]
 
   @property() ready = false
-  @property() npub = ''
+  @property() user = ''
+  @property() author = ''
+  @property() id = ''
+  @property() addr = ''
   @property() accent = ''
   @property() updateTrigger = 0
   @property() zaps: Zap[] = []
@@ -163,7 +166,7 @@ export class Zaps extends LitElement {
     console.log(Date.now(), 'content-cta zaps loading')
 
     // FIXME tests
-    const [id, addr] = getIdAddr()
+    const [id, addr] = [this.id, this.addr]
     if (!id && !addr) return
 
     const filter: any = {
@@ -175,7 +178,8 @@ export class Zaps extends LitElement {
     if (id) filters.push({ ...filter, '#e': [id] })
     if (addr) filters.push({ ...filter, '#a': [addr] })
 
-    const events = await nostrSite.renderer.fetchEvents(filters, { relays: getAuthorRelays(), timeoutMs: 10000 })
+    const relays = await getReadRelays({ authorPubkey: this.author, userPubkey: this.user });
+    const events = await nostrSite.renderer.fetchEvents(filters, { relays, timeoutMs: 10000 })
     console.log(Date.now(), 'content-cta zaps', events)
 
     // get zap authors and amounts
@@ -230,11 +234,8 @@ export class Zaps extends LitElement {
       }
     }
 
-    let pubkey = ''
-    if (this.npub) pubkey = nostrSite.nostrTools.nip19.decode(this.npub).data
-    console.log('zaps user pubkey', this.npub, pubkey)
-
-    zaps.forEach((z) => (z.accent = z.pubkey === pubkey))
+    console.log('zaps user pubkey', this.user)
+    zaps.forEach((z) => (z.accent = z.pubkey === this.user))
 
     zaps.sort((a, b) => {
       if (a.accent === b.accent) return b.amount - a.amount
@@ -245,7 +246,7 @@ export class Zaps extends LitElement {
   }
 
   async updated(changedProperties: { has: (args: string) => any }) {
-    if (changedProperties.has('ready') || changedProperties.has('npub') || changedProperties.has('updateTrigger')) {
+    if (changedProperties.has('ready') || changedProperties.has('user') || changedProperties.has('updateTrigger')) {
       if (this.ready) {
         if (this.loading) return
 

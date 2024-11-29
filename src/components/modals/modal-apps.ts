@@ -46,8 +46,8 @@ export class ModalApps extends LitElement {
 
   @property() open = false
 
-  @property() idParam = ''
   @property() userPubkey = ''
+  @property() eventAddr = ''
   @property() kind: number | undefined = undefined
 
   @state() apps: any[] = []
@@ -62,9 +62,7 @@ export class ModalApps extends LitElement {
     this.error = ''
     this.isLoading = true
     try {
-      const meta = document.querySelector(`meta[name="nostr:id"]`)
-      if (!meta) throw new Error('No nostr id meta')
-      const id = meta.getAttribute('content')
+      const id = this.eventAddr
       if (!id) throw new Error('No nostr id')
 
       // @ts-ignore

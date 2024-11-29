@@ -105,6 +105,9 @@ const CTA_MAIN_ACTION_ATTR = 'data-cta-main'
 const BUTTON_COLOR_ATTR = 'data-button-color'
 const BUTTON_TEXT_COLOR_ATTR = 'data-text-button-color'
 const NPUB_ATTR = 'data-user-npub'
+const EVENT_ADDR_ATTR = 'data-event-addr'
+const EVENT_ID_ATTR = 'data-event-id'
+const EVENT_AUTHOR_ATTR = 'data-author-npub'
 
 const DEFAULT_BUTTON_COLOR = '#245b9e'
 const DEFAULT_BUTTON_TEXT_COLOR = '#fff'
@@ -121,5 +124,9 @@ export {
   ACTIONS,
   SELECTION_ACTIONS,
   NPUB_ATTR,
+  EVENT_ADDR_ATTR as EVENT_ATTR,
+  EVENT_AUTHOR_ATTR,
+  EVENT_ID_ATTR,
+  EVENT_ADDR_ATTR,
   APPS,
 }

@@ -29,7 +29,7 @@ export class ModalShareApps extends LitElement {
   }
 
   private _handleAppClick(app: IShareApp) {
-    console.log(app)
+    // console.log(app)
 
     this._handleClose()
 

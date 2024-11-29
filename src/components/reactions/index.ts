@@ -1,7 +1,7 @@
 import { css, html, LitElement } from 'lit'
 import { customElement, property, query, state } from 'lit/decorators.js'
 import { TWStyles } from '../../modules/tw/twlit'
-import { getIdAddr, getAuthorRelays } from '../../utils/helpers'
+import { getReadRelays, parseIdAddr } from '../../utils/helpers'
 import { Reaction } from '../../utils/types'
 
 const PLUS_REACTION = html`<svg viewBox="0 0 24 24" class="w-[20px] h-[20px]">
@@ -71,7 +71,10 @@ export class Reactions extends LitElement {
   ]
 
   @property() ready = false
-  @property() npub = ''
+  @property() user = ''
+  @property() author = ''
+  @property() id = ''
+  @property() addr = ''
   @property() accent = ''
   @property() updateTrigger = 0
   @property() reactions: Reaction[] = []
@@ -96,8 +99,7 @@ export class Reactions extends LitElement {
     await nostrSite.tabReady
     console.log(Date.now(), 'content-cta reactions loading')
 
-    // FIXME tests
-    const [id, addr] = getIdAddr()
+    const [id, addr] = [this.id, this.addr]
     if (!id && !addr) return
 
     const filter: any = {
@@ -109,12 +111,11 @@ export class Reactions extends LitElement {
     if (id) filters.push({ ...filter, '#e': [id] });
     if (addr) filters.push({ ...filter, '#a': [addr] });
 
-    const events = await nostrSite.renderer.fetchEvents(filters, { relays: getAuthorRelays(), timeoutMs: 10000 })
+    const relays = await getReadRelays({ authorPubkey: this.author, userPubkey: this.user });
+    const events = await nostrSite.renderer.fetchEvents(filters, { relays, timeoutMs: 10000 })
     console.log(Date.now(), 'content-cta reaction events since', this.since, [...events])
 
-    let pubkey = ''
-    if (this.npub) pubkey = nostrSite.nostrTools.nip19.decode(this.npub).data
-    console.log('reactions user pubkey', this.npub, pubkey)
+    console.log('reactions user pubkey', this.user)
 
     const reactions: Reaction[] = [...this.reactions]
     for (const e of [...events]) {
@@ -162,11 +163,9 @@ export class Reactions extends LitElement {
     // @ts-ignore
     const nostrSite: any = window.nostrSite
 
-    let pubkey = ''
-    if (this.npub) pubkey = nostrSite.nostrTools.nip19.decode(this.npub).data
-    console.log('reactions user pubkey', this.npub, pubkey)
+    console.log('reactions user pubkey', this.user)
 
-    this.reactions.forEach((r) => (r.accent = Boolean(pubkey && r.pubkeys && r.pubkeys.includes(pubkey))))
+    this.reactions.forEach((r) => (r.accent = Boolean(this.user && r.pubkeys && r.pubkeys.includes(this.user))))
 
     this.reactions.sort((a, b) => {
       if (a.accent === b.accent) return b.count - a.count
@@ -175,7 +174,7 @@ export class Reactions extends LitElement {
   }
 
   async updated(changedProperties: { has: (args: string) => any }) {
-    if (changedProperties.has('ready') || changedProperties.has('npub') || changedProperties.has('updateTrigger')) {
+    if (changedProperties.has('ready') || changedProperties.has('user') || changedProperties.has('updateTrigger')) {
       if (this.ready) {
         if (this.loading) return
 

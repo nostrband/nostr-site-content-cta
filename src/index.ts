@@ -1,8 +1,7 @@
 import { LitElement, css, html, nothing } from 'lit'
-import { customElement, property, query, state } from 'lit/decorators.js'
+import { customElement, property, state } from 'lit/decorators.js'
 import { TWStyles } from './modules/tw/twlit'
 
-import { EmojiClickEvent } from 'emoji-picker-element/shared'
 import { CompletionState, ItemAction, LoadingState } from './utils/types'
 
 import {
@@ -16,10 +15,14 @@ import {
   DEFAULT_MAIN_ACTION,
   NPUB_ATTR,
   SELECTION_ACTIONS,
+  EVENT_AUTHOR_ATTR,
+  EVENT_ADDR_ATTR,
+  EVENT_ID_ATTR,
 } from './utils/const'
 import {
-  getAuthorPubkey,
   getCompletionForEvent,
+  npubToPubkey,
+  parseIdAddr,
   prepareActionsList,
   publishBookmark,
   publishFollow,
@@ -57,7 +60,10 @@ export class NostrContentCta extends LitElement {
   @property({ attribute: false }) actions: ItemAction[] = []
   @property({ attribute: false }) selectionActions: ItemAction[] = []
   @property({ attribute: false }) mainAction: ItemAction = DEFAULT_MAIN_ACTION
-  @property({ attribute: NPUB_ATTR }) npub: string = ''
+  @property({ attribute: NPUB_ATTR }) userNpub: string = ''
+  @property({ attribute: EVENT_ADDR_ATTR }) eventAddr: string = ''
+  @property({ attribute: EVENT_ID_ATTR }) eventId: string = ''
+  @property({ attribute: EVENT_AUTHOR_ATTR }) eventAuthorNpub: string = ''
 
   @state() private actionsModalOpen = false
   @state() private showEmojiPicker = false
@@ -96,13 +102,17 @@ export class NostrContentCta extends LitElement {
     waitNostrSite().then((ep) => {
       this.pluginEndpoint = ep
 
-      // @ts-ignore
-      this.user = window.nostrSite.user()?.pubkey;
-      this.pluginEndpoint.subscribe('auth', (info: { type: string, pubkey?: string}) => {
-        console.log("content-cta auth", info);
+      const pubkeyToNpub = (pubkey?: string) => {
         // @ts-ignore
-        this.npub = info.pubkey ? window.nostrSite.nostrTools.nip19.npubEncode(info.pubkey) : '';
-      });
+        return pubkey ? window.nostrSite.nostrTools.nip19.npubEncode(pubkey) : ''
+      }
+
+      // @ts-ignore
+      this.userNpub = pubkeyToNpub(window.nostrSite.user()?.pubkey)
+      this.pluginEndpoint.subscribe('auth', (info: { type: string; pubkey?: string }) => {
+        console.log('content-cta auth', info)
+        this.userNpub = pubkeyToNpub(info.pubkey)
+      })
 
       this.pluginEndpoint.subscribe('action-open-with', () => {
         this._handleOpenAppsModal()
@@ -146,13 +156,21 @@ export class NostrContentCta extends LitElement {
       const nostrSite = window.nostrSite
       nostrSite.tabReady.then(async () => {
         const renderer = nostrSite.renderer
-        const profiles = await renderer.fetchProfiles([getAuthorPubkey()])
+        const profiles = await renderer.fetchProfiles([this.authorPubkey()])
         if (profiles.length) {
           this.authorName = profiles[0].profile.display_name || profiles[0].profile.display_name
           this.authorAvatar = profiles[0].profile.picture
         }
       })
     })
+  }
+
+  private userPubkey() {
+    return this.userNpub ? npubToPubkey(this.userNpub) : ''
+  }
+
+  private authorPubkey() {
+    return npubToPubkey(this.eventAuthorNpub)
   }
 
   private _handleOpenActionsModal() {
@@ -246,7 +264,12 @@ export class NostrContentCta extends LitElement {
   private async _publishReaction(text: string) {
     try {
       this.loading = 'reaction'
-      const nostrEvent = await publishReaction(text)
+      const nostrEvent = await publishReaction({
+        eventAddr: this.eventAddr,
+        eventId: this.eventId,
+        authorPubkey: this.authorPubkey(),
+        emoji: text,
+      })
       // a generalized way to notify nostr-site about the new relevant event
       this.pluginEndpoint?.dispatch('event-published', nostrEvent)
       this.loading = ''
@@ -258,7 +281,7 @@ export class NostrContentCta extends LitElement {
   private async _publishNote(text: string) {
     try {
       this.loading = 'note'
-      const nostrEvent = await publishNote(text)
+      const nostrEvent = await publishNote({ authorPubkey: this.authorPubkey(), text })
       this.pluginEndpoint?.dispatch('event-published', nostrEvent)
       this.loading = ''
     } catch {
@@ -269,7 +292,13 @@ export class NostrContentCta extends LitElement {
   private async _publishHighlight(text: string, comment: string) {
     try {
       this.loading = 'highlight'
-      const nostrEvent = await publishHighlight(text, comment)
+      const nostrEvent = await publishHighlight({
+        eventAddr: this.eventAddr,
+        eventId: this.eventId,
+        authorPubkey: this.authorPubkey(),
+        text,
+        comment,
+      })
       this.pluginEndpoint?.dispatch('event-published', nostrEvent)
       this.loading = ''
     } catch {
@@ -280,7 +309,12 @@ export class NostrContentCta extends LitElement {
   private async _publishReply(text: string) {
     try {
       this.loading = 'note'
-      const nostrEvent = await publishReply(text)
+      const nostrEvent = await publishReply({
+        eventAddr: this.eventAddr,
+        eventId: this.eventId,
+        authorPubkey: this.authorPubkey(),
+        text,
+      })
       this.pluginEndpoint?.dispatch('event-published', nostrEvent)
       this.loading = ''
     } catch {
@@ -289,16 +323,10 @@ export class NostrContentCta extends LitElement {
   }
 
   private async _handleFollow() {
-    const npub = document.querySelector('meta[name="nostr:author"]')?.getAttribute('content')
-    console.log('follow npub', npub)
-    if (!npub || !npub.startsWith('npub')) return
+    const pubkey = this.authorPubkey()
+    console.log('follow pubkey', pubkey)
     try {
       this.loading = 'follow'
-      // @ts-ignore
-      const nostrSite = window.nostrSite
-      const pubkey = nostrSite.nostrTools.nip19.decode(npub).data
-      console.log('follow pubkey', pubkey)
-
       const nostrEvent = await publishFollow(pubkey)
       this.pluginEndpoint?.dispatch('event-published', nostrEvent)
       this.loading = ''
@@ -310,7 +338,11 @@ export class NostrContentCta extends LitElement {
   private async _handleBookmark() {
     try {
       this.loading = 'bookmark'
-      const nostrEvent = await publishBookmark()
+      const nostrEvent = await publishBookmark({
+        eventAddr: this.eventAddr,
+        eventId: this.eventId,
+        authorPubkey: this.authorPubkey(),
+      })
       this.pluginEndpoint?.dispatch('event-published', nostrEvent)
       this.loading = ''
     } catch {
@@ -329,7 +361,7 @@ export class NostrContentCta extends LitElement {
     const nostrSite: any = window.nostrSite
     if (!nostrSite) return
 
-    const id = document.querySelector('meta[name="nostr:id"]')?.getAttribute('content') || ''
+    const id = this.eventAddr
     const nip19 = nostrSite.nostrTools.nip19
     const renderer = nostrSite.renderer
     const site = renderer.getSite()
@@ -400,11 +432,15 @@ export class NostrContentCta extends LitElement {
   }
 
   render() {
+    const [id, addr] = parseIdAddr(this.eventAddr, this.eventId)
     return html`
       <div class="w-full flex flex-col gap-[8px]">
         <np-content-cta-zaps
           .ready=${this.ready}
-          .npub=${this.npub}
+          .user=${this.userPubkey()}
+          .author=${this.authorPubkey()}
+          .id=${id}
+          .addr=${addr}
           .accent=${this.buttonColor}
           .updateTrigger=${this.updateTrigger}
           .dispatchZap=${this._handleDispatchZap.bind(this)}
@@ -412,7 +448,10 @@ export class NostrContentCta extends LitElement {
 
         <np-content-cta-reactions
           .ready=${this.ready}
-          .npub=${this.npub}
+          .user=${this.userPubkey()}
+          .author=${this.authorPubkey()}
+          .id=${id}
+          .addr=${addr}
           .accent=${this.buttonColor}
           .updateTrigger=${this.updateTrigger}
           .dispatchLike=${this._publishReaction.bind(this)}
@@ -429,7 +468,11 @@ export class NostrContentCta extends LitElement {
 
       ${this.renderActionsModal()}
 
-      <np-content-cta-modal-apps @close-modal=${this._handleCloseModal.bind(this)} .open=${this.appsModalOpen}>
+      <np-content-cta-modal-apps
+        @close-modal=${this._handleCloseModal.bind(this)}
+        .open=${this.appsModalOpen}
+        .eventAddr=${this.eventAddr}
+      >
       </np-content-cta-modal-apps>
 
       <np-content-cta-modal-emoji
