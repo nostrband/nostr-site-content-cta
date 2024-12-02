@@ -166,11 +166,13 @@ export class NostrContentCta extends LitElement {
   }
 
   private userPubkey() {
-    return this.userNpub ? npubToPubkey(this.userNpub) : ''
+    // @ts-ignore
+    return window.nostrSite && this.userNpub ? npubToPubkey(this.userNpub) : ''
   }
 
   private authorPubkey() {
-    return npubToPubkey(this.eventAuthorNpub)
+    // @ts-ignore
+    return window.nostrSite && this.eventAuthorNpub ? npubToPubkey(this.eventAuthorNpub) : ''
   }
 
   private _handleOpenActionsModal() {
