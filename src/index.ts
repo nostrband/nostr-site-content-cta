@@ -18,6 +18,8 @@ import {
   EVENT_AUTHOR_ATTR,
   EVENT_ADDR_ATTR,
   EVENT_ID_ATTR,
+  DEFAULT_MAIN_ACTION_ANON,
+  DEFAULT_MAIN_ACTION_USER,
 } from './utils/const'
 import {
   getCompletionForEvent,
@@ -87,7 +89,7 @@ export class NostrContentCta extends LitElement {
     super.connectedCallback()
     this.id = 'np-content-cta'
 
-    const mainAction = this.getAttribute(CTA_MAIN_ACTION_ATTR) || 'zap'
+    const mainAction = this.getAttribute(CTA_MAIN_ACTION_ATTR) || DEFAULT_MAIN_ACTION_ANON
     this.mainAction = ACTIONS[mainAction]
 
     const actions = this.getAttribute(CTA_LIST_ATTR) || Object.keys(ACTIONS).join(',')
@@ -112,6 +114,12 @@ export class NostrContentCta extends LitElement {
       this.pluginEndpoint.subscribe('auth', (info: { type: string; pubkey?: string }) => {
         console.log('content-cta auth', info)
         this.userNpub = pubkeyToNpub(info.pubkey)
+        let mainAction = this.getAttribute(CTA_MAIN_ACTION_ATTR)
+        if (!mainAction) {
+          if (info.type === 'logout') mainAction = DEFAULT_MAIN_ACTION_ANON
+          else mainAction = DEFAULT_MAIN_ACTION_USER
+        }
+        this.mainAction = ACTIONS[mainAction]
       })
 
       this.pluginEndpoint.subscribe('action-open-with', () => {
